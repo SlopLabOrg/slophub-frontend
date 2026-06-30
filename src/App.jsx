@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, Route, Routes } from "react-router-dom";
+import { Link, Route, Routes, useParams } from "react-router-dom";
 
 const APPS_URL = "https://ai-slophub.github.io/slophub/apps.json";
 
@@ -253,17 +253,179 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
   );
 }
 
-function PlaceholderDetail() {
+function formatDateTime(value) {
+  if (!value) {
+    return "Unknown";
+  }
+
+  return new Intl.DateTimeFormat("en", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function commandFor(app, remote) {
+  if (!app?.flatpakref_url) {
+    return null;
+  }
+
+  return `flatpak install --user ${app.flatpakref_url}`;
+}
+
+function DetailPage({ status, apps, remote, error }) {
+  const { appId } = useParams();
+
+  if (status === "loading") {
+    return (
+      <StateView
+        title="Loading application"
+        copy="Resolving package metadata and install targets."
+      />
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <StateView
+        title="Could not load application"
+        copy={error ?? "Unknown error while loading data."}
+        action={
+          <Link className="btn btn-primary" to="/">
+            Back to catalog
+          </Link>
+        }
+      />
+    );
+  }
+
+  const app = apps.find((item) => item.app_id === appId);
+
+  if (!app) {
+    return (
+      <StateView
+        title="Application not found"
+        copy={`No Slophub package matches "${appId}".`}
+        action={
+          <Link className="btn btn-primary" to="/">
+            Back to catalog
+          </Link>
+        }
+      />
+    );
+  }
+
+  const installCommand = commandFor(app, remote);
+
   return (
-    <StateView
-      title="App page coming next"
-      copy="The dedicated route exists in the next commit."
-      action={
-        <Link className="btn btn-primary" to="/">
-          Back to catalog
-        </Link>
-      }
-    />
+    <>
+      <div className="page-backlink">
+        <Link to="/">Back to catalog</Link>
+      </div>
+
+      <section className="detail-shell">
+        <div className="detail-top">
+          <div className="detail-identity">
+            <img className="detail-icon-image" src={app.icon_url} alt="" />
+            <div>
+              <p className="eyebrow">Application</p>
+              <h2>{app.title}</h2>
+              <p className="detail-description">{app.description}</p>
+              <div className="badge-row">
+                <span className="badge badge-solid">{app.branch}</span>
+                {app.release?.tag ? (
+                  <span className="badge badge-neutral">{app.release.tag}</span>
+                ) : null}
+                <span className="badge badge-neutral">{remote?.name ?? "slophub"}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="detail-actions">
+            {app.flatpakref_url ? (
+              <a className="btn btn-primary" href={app.flatpakref_url}>
+                Install ref
+              </a>
+            ) : null}
+            {app.bundle?.download_url ? (
+              <a className="btn btn-secondary" href={app.bundle.download_url}>
+                Download bundle
+              </a>
+            ) : null}
+            {app.homepage_url ? (
+              <a className="btn btn-ghost" href={app.homepage_url}>
+                Homepage
+              </a>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="detail-body">
+          <div className="preview-panel">
+            <div className="preview-header">
+              <span className="status-dot" />
+              <span>Release overview</span>
+            </div>
+
+            <div className="detail-section">
+              <h3>Package id</h3>
+              <p className="detail-copy">{app.app_id}</p>
+            </div>
+
+            <div className="detail-section">
+              <h3>Install command</h3>
+              <pre className="command-block">
+                <code>{installCommand ?? "No install command available"}</code>
+              </pre>
+            </div>
+
+            <div className="detail-section">
+              <h3>Release</h3>
+              <div className="release-grid">
+                <div>
+                  <span>Name</span>
+                  <strong>{app.release?.name ?? "Unknown"}</strong>
+                </div>
+                <div>
+                  <span>Published</span>
+                  <strong>{formatDateTime(app.release?.published_at)}</strong>
+                </div>
+                <div>
+                  <span>SHA256</span>
+                  <strong className="hash-block">{app.bundle?.sha256 ?? "Unavailable"}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside className="spec-panel">
+            <div className="spec-item">
+              <span>Bundle file</span>
+              <strong>{app.bundle?.asset_name ?? "Unknown"}</strong>
+            </div>
+            <div className="spec-item">
+              <span>Branch</span>
+              <strong>{app.branch}</strong>
+            </div>
+            <div className="spec-item">
+              <span>Source release</span>
+              <strong>
+                {app.release?.url ? (
+                  <a href={app.release.url}>Open release notes</a>
+                ) : (
+                  "Unavailable"
+                )}
+              </strong>
+            </div>
+            <div className="spec-item">
+              <span>Remote repo</span>
+              <strong>
+                {remote?.repo_url ? <a href={remote.repo_url}>Open repository</a> : "Unavailable"}
+              </strong>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </>
   );
 }
 
@@ -285,7 +447,7 @@ export default function App() {
     <AppShell remote={data.remote} generatedAt={data.generatedAt}>
       <Routes>
         <Route path="/" element={<HomePage {...data} />} />
-        <Route path="/:appId" element={<PlaceholderDetail />} />
+        <Route path="/:appId" element={<DetailPage {...data} />} />
       </Routes>
     </AppShell>
   );
