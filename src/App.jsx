@@ -80,7 +80,7 @@ function AppShell({ remote, generatedAt, children }) {
         <Link to="/" className="brand">
           <div className="brand-mark">S</div>
           <div>
-            <p className="eyebrow">App marketplace</p>
+            <p className="eyebrow">AI app catalog</p>
             <h1>Slophub</h1>
           </div>
         </Link>
@@ -99,7 +99,7 @@ function AppShell({ remote, generatedAt, children }) {
             ))}
           </div>
           <p className="sidebar-copy">
-            Color-driven storefront for independent Flatpak distribution.
+            Curated, not scraped. Real packages, real release files, direct install targets.
           </p>
         </div>
 
@@ -107,9 +107,10 @@ function AppShell({ remote, generatedAt, children }) {
           <p className="sidebar-label">Remote</p>
           <strong>{remote?.title ?? "Loading remote"}</strong>
           <p className="sidebar-copy">
-            {remote?.description ?? "Fetching remote metadata."}
+            {remote?.description ??
+              "Fetching repository metadata, release links, and publication details."}
           </p>
-          <p className="sidebar-meta">Updated {formatDate(generatedAt)}</p>
+          <p className="sidebar-meta">Metadata synced {formatDate(generatedAt)}</p>
         </div>
       </aside>
 
@@ -173,11 +174,11 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
     <>
       <section className="hero">
         <div className="hero-copy-block">
-          <p className="eyebrow">Visual system meets live catalog</p>
-          <h2>Discover independent desktop apps with a stronger storefront.</h2>
+          <p className="eyebrow">Beyond the slop</p>
+          <h2>AI apps with actual taste, packaged for direct install.</h2>
           <p className="hero-copy">
-            A vivid catalog for browsing releases, opening app details, and jumping
-            straight into installation files and upstream projects.
+            Slophub is a curated catalog of AI-adjacent desktop apps that do something real:
+            clear metadata, upstream releases, and Flatpak install targets in one place.
           </p>
         </div>
 
@@ -203,9 +204,10 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
         <div className="catalog-header">
           <div>
             <p className="eyebrow">Catalog</p>
-            <h3>Available apps</h3>
+            <h3>Curated applications</h3>
             <p className="section-copy">
-              Search by title, package id, or summary. Open any card for a dedicated product page.
+              Search by title, application ID, or summary. Open any card for release details,
+              upstream links, and Flatpak installation files.
             </p>
           </div>
           <label className="search-input">
@@ -243,7 +245,7 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
               </div>
               <div className="app-meta">
                 <span>Published {formatDate(app.release?.published_at)}</span>
-                <span>Open details</span>
+                <span>Open app page</span>
               </div>
             </Link>
           ))}
@@ -264,7 +266,7 @@ function formatDateTime(value) {
   }).format(new Date(value));
 }
 
-function commandFor(app, remote) {
+function commandFor(app) {
   if (!app?.flatpakref_url) {
     return null;
   }
@@ -314,7 +316,7 @@ function DetailPage({ status, apps, remote, error }) {
     );
   }
 
-  const installCommand = commandFor(app, remote);
+  const installCommand = commandFor(app);
 
   return (
     <>
@@ -343,7 +345,7 @@ function DetailPage({ status, apps, remote, error }) {
           <div className="detail-actions">
             {app.flatpakref_url ? (
               <a className="btn btn-primary" href={app.flatpakref_url}>
-                Install ref
+                Install via Flatpak
               </a>
             ) : null}
             {app.bundle?.download_url ? (
@@ -363,26 +365,26 @@ function DetailPage({ status, apps, remote, error }) {
           <div className="preview-panel">
             <div className="preview-header">
               <span className="status-dot" />
-              <span>Release overview</span>
+              <span>Flatpak metadata</span>
             </div>
 
             <div className="detail-section">
-              <h3>Package id</h3>
+              <h3>Application ID</h3>
               <p className="detail-copy">{app.app_id}</p>
             </div>
 
             <div className="detail-section">
               <h3>Install command</h3>
               <pre className="command-block">
-                <code>{installCommand ?? "No install command available"}</code>
+                <code>{installCommand ?? "No Flatpak install command available"}</code>
               </pre>
             </div>
 
             <div className="detail-section">
-              <h3>Release</h3>
+              <h3>Release details</h3>
               <div className="release-grid">
                 <div>
-                  <span>Name</span>
+                  <span>Release name</span>
                   <strong>{app.release?.name ?? "Unknown"}</strong>
                 </div>
                 <div>
@@ -390,7 +392,7 @@ function DetailPage({ status, apps, remote, error }) {
                   <strong>{formatDateTime(app.release?.published_at)}</strong>
                 </div>
                 <div>
-                  <span>SHA256</span>
+                  <span>Bundle SHA256</span>
                   <strong className="hash-block">{app.bundle?.sha256 ?? "Unavailable"}</strong>
                 </div>
               </div>
@@ -407,7 +409,7 @@ function DetailPage({ status, apps, remote, error }) {
               <strong>{app.branch}</strong>
             </div>
             <div className="spec-item">
-              <span>Source release</span>
+              <span>Upstream release</span>
               <strong>
                 {app.release?.url ? (
                   <a href={app.release.url}>Open release notes</a>
@@ -417,7 +419,7 @@ function DetailPage({ status, apps, remote, error }) {
               </strong>
             </div>
             <div className="spec-item">
-              <span>Remote repo</span>
+              <span>Remote repository</span>
               <strong>
                 {remote?.repo_url ? <a href={remote.repo_url}>Open repository</a> : "Unavailable"}
               </strong>
