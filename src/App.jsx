@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Route, Routes, useParams } from "react-router-dom";
+import { useI18n } from "./i18n";
 
 const APPS_URL = "https://ai-slophub.github.io/slophub/apps.json";
 
@@ -57,22 +58,27 @@ function useSlophubData() {
   return state;
 }
 
-function formatDate(value) {
+function formatDate(value, locale, fallback) {
   if (!value) {
-    return "Unknown";
+    return fallback;
   }
 
-  return new Intl.DateTimeFormat("en", {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
   }).format(new Date(value));
 }
 
 function AppShell({ remote, generatedAt, children }) {
   const [theme, setTheme] = useState("nova");
+  const { locale, setLocale, t } = useI18n();
 
   useEffect(() => {
     document.body.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.lang = locale === "pt" ? "pt-BR" : "en";
+  }, [locale]);
 
   return (
     <div className="shell">
@@ -80,13 +86,13 @@ function AppShell({ remote, generatedAt, children }) {
         <Link to="/" className="brand">
           <div className="brand-mark">S</div>
           <div>
-            <p className="eyebrow">AI app catalog</p>
+            <p className="eyebrow">{t("appMarketplace")}</p>
             <h1>Slophub</h1>
           </div>
         </Link>
 
         <div className="sidebar-panel">
-          <p className="sidebar-label">Theme</p>
+          <p className="sidebar-label">{t("theme")}</p>
           <div className="theme-switcher">
             {["nova", "pulse", "lava"].map((item) => (
               <button
@@ -98,19 +104,37 @@ function AppShell({ remote, generatedAt, children }) {
               />
             ))}
           </div>
-          <p className="sidebar-copy">
-            Curated, not scraped. Real packages, real release files, direct install targets.
-          </p>
+          <p className="sidebar-copy">{t("curatedNotScraped")}</p>
         </div>
 
         <div className="sidebar-panel">
-          <p className="sidebar-label">Remote</p>
-          <strong>{remote?.title ?? "Loading remote"}</strong>
+          <p className="sidebar-label">{t("language")}</p>
+          <div className="locale-switcher">
+            <button
+              className={`locale-pill ${locale === "en" ? "active" : ""}`}
+              onClick={() => setLocale("en")}
+            >
+              {t("english")}
+            </button>
+            <button
+              className={`locale-pill ${locale === "pt" ? "active" : ""}`}
+              onClick={() => setLocale("pt")}
+            >
+              {t("portuguese")}
+            </button>
+          </div>
+        </div>
+
+        <div className="sidebar-panel">
+          <p className="sidebar-label">{t("remote")}</p>
+          <strong>{remote?.title ?? t("loadingRemote")}</strong>
           <p className="sidebar-copy">
             {remote?.description ??
-              "Fetching repository metadata, release links, and publication details."}
+              t("fetchingRemoteFallback")}
           </p>
-          <p className="sidebar-meta">Metadata synced {formatDate(generatedAt)}</p>
+          <p className="sidebar-meta">
+            {t("metadataSynced")} {formatDate(generatedAt, locale, t("unknown"))}
+          </p>
         </div>
       </aside>
 
@@ -120,9 +144,11 @@ function AppShell({ remote, generatedAt, children }) {
 }
 
 function StateView({ title, copy, action }) {
+  const { t } = useI18n();
+
   return (
     <div className="state-card">
-      <p className="eyebrow">Slophub</p>
+      <p className="eyebrow">{t("slophub")}</p>
       <h2>{title}</h2>
       <p>{copy}</p>
       {action}
@@ -132,6 +158,7 @@ function StateView({ title, copy, action }) {
 
 function HomePage({ status, apps, remote, generatedAt, error }) {
   const [query, setQuery] = useState("");
+  const { locale, t } = useI18n();
 
   const filteredApps = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -150,8 +177,8 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
   if (status === "loading") {
     return (
       <StateView
-        title="Loading applications"
-        copy="Fetching Slophub packages and release metadata."
+        title={t("loadingApplications")}
+        copy={t("fetchingPackages")}
       />
     );
   }
@@ -159,11 +186,11 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
   if (status === "error") {
     return (
       <StateView
-        title="Could not load Slophub"
-        copy={error ?? "Unknown error while loading data."}
+        title={t("couldNotLoadSlophub")}
+        copy={error ?? t("unknownError")}
         action={
           <a className="btn btn-primary" href={APPS_URL}>
-            Open source feed
+            {t("openSourceFeed")}
           </a>
         }
       />
@@ -174,27 +201,26 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
     <>
       <section className="hero">
         <div className="hero-copy-block">
-          <p className="eyebrow">Beyond the slop</p>
-          <h2>AI apps with actual taste, packaged for direct install.</h2>
-          <p className="hero-copy">
-            Slophub is a curated catalog of AI-adjacent desktop apps that do something real:
-            clear metadata, upstream releases, and Flatpak install targets in one place.
-          </p>
+          <p className="eyebrow">{t("beyondTheSlop")}</p>
+          <h2>{t("heroTitle")}</h2>
+          <p className="hero-copy">{t("heroCopy")}</p>
         </div>
 
         <div className="hero-card">
           <div className="hero-card-top">
             <span className="status-dot" />
-            <span>{apps.length} apps indexed</span>
+            <span>
+              {apps.length} {t("appsIndexed")}
+            </span>
           </div>
           <div className="metric-row">
             <div>
-              <span>Remote</span>
+              <span>{t("remote")}</span>
               <strong>{remote?.name ?? "slophub"}</strong>
             </div>
             <div>
-              <span>Last sync</span>
-              <strong>{formatDate(generatedAt)}</strong>
+              <span>{t("lastSync")}</span>
+              <strong>{formatDate(generatedAt, locale, t("unknown"))}</strong>
             </div>
           </div>
         </div>
@@ -203,20 +229,17 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
       <section className="catalog-shell">
         <div className="catalog-header">
           <div>
-            <p className="eyebrow">Catalog</p>
-            <h3>Curated applications</h3>
-            <p className="section-copy">
-              Search by title, application ID, or summary. Open any card for release details,
-              upstream links, and Flatpak installation files.
-            </p>
+            <p className="eyebrow">{t("catalog")}</p>
+            <h3>{t("curatedApplications")}</h3>
+            <p className="section-copy">{t("catalogCopy")}</p>
           </div>
           <label className="search-input">
-            <span>Search</span>
+            <span>{t("search")}</span>
             <input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Parquetta, query tools, DuckDB..."
+              placeholder={t("searchPlaceholder")}
             />
           </label>
         </div>
@@ -244,8 +267,10 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
                 ) : null}
               </div>
               <div className="app-meta">
-                <span>Published {formatDate(app.release?.published_at)}</span>
-                <span>Open app page</span>
+                <span>
+                  {t("published")} {formatDate(app.release?.published_at, locale, t("unknown"))}
+                </span>
+                <span>{t("openAppPage")}</span>
               </div>
             </Link>
           ))}
@@ -255,12 +280,12 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
   );
 }
 
-function formatDateTime(value) {
+function formatDateTime(value, locale, fallback) {
   if (!value) {
-    return "Unknown";
+    return fallback;
   }
 
-  return new Intl.DateTimeFormat("en", {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
@@ -276,12 +301,13 @@ function commandFor(app) {
 
 function DetailPage({ status, apps, remote, error }) {
   const { appId } = useParams();
+  const { locale, t } = useI18n();
 
   if (status === "loading") {
     return (
       <StateView
-        title="Loading application"
-        copy="Resolving package metadata and install targets."
+        title={t("loadingApplication")}
+        copy={t("resolvingPackage")}
       />
     );
   }
@@ -289,11 +315,11 @@ function DetailPage({ status, apps, remote, error }) {
   if (status === "error") {
     return (
       <StateView
-        title="Could not load application"
-        copy={error ?? "Unknown error while loading data."}
+        title={t("couldNotLoadApplication")}
+        copy={error ?? t("unknownError")}
         action={
           <Link className="btn btn-primary" to="/">
-            Back to catalog
+            {t("backToCatalog")}
           </Link>
         }
       />
@@ -305,11 +331,11 @@ function DetailPage({ status, apps, remote, error }) {
   if (!app) {
     return (
       <StateView
-        title="Application not found"
-        copy={`No Slophub package matches "${appId}".`}
+        title={t("applicationNotFound")}
+        copy={t("noPackageMatches", { appId })}
         action={
           <Link className="btn btn-primary" to="/">
-            Back to catalog
+            {t("backToCatalog")}
           </Link>
         }
       />
@@ -321,7 +347,7 @@ function DetailPage({ status, apps, remote, error }) {
   return (
     <>
       <div className="page-backlink">
-        <Link to="/">Back to catalog</Link>
+        <Link to="/">{t("backToCatalog")}</Link>
       </div>
 
       <section className="detail-shell">
@@ -329,7 +355,7 @@ function DetailPage({ status, apps, remote, error }) {
           <div className="detail-identity">
             <img className="detail-icon-image" src={app.icon_url} alt="" />
             <div>
-              <p className="eyebrow">Application</p>
+              <p className="eyebrow">{t("application")}</p>
               <h2>{app.title}</h2>
               <p className="detail-description">{app.description}</p>
               <div className="badge-row">
@@ -345,17 +371,17 @@ function DetailPage({ status, apps, remote, error }) {
           <div className="detail-actions">
             {app.flatpakref_url ? (
               <a className="btn btn-primary" href={app.flatpakref_url}>
-                Install via Flatpak
+                {t("installViaFlatpak")}
               </a>
             ) : null}
             {app.bundle?.download_url ? (
               <a className="btn btn-secondary" href={app.bundle.download_url}>
-                Download bundle
+                {t("downloadBundle")}
               </a>
             ) : null}
             {app.homepage_url ? (
               <a className="btn btn-ghost" href={app.homepage_url}>
-                Homepage
+                {t("homepage")}
               </a>
             ) : null}
           </div>
@@ -365,35 +391,35 @@ function DetailPage({ status, apps, remote, error }) {
           <div className="preview-panel">
             <div className="preview-header">
               <span className="status-dot" />
-              <span>Flatpak metadata</span>
+              <span>{t("flatpakMetadata")}</span>
             </div>
 
             <div className="detail-section">
-              <h3>Application ID</h3>
+              <h3>{t("applicationId")}</h3>
               <p className="detail-copy">{app.app_id}</p>
             </div>
 
             <div className="detail-section">
-              <h3>Install command</h3>
+              <h3>{t("installCommand")}</h3>
               <pre className="command-block">
-                <code>{installCommand ?? "No Flatpak install command available"}</code>
+                <code>{installCommand ?? t("noInstallCommand")}</code>
               </pre>
             </div>
 
             <div className="detail-section">
-              <h3>Release details</h3>
+              <h3>{t("releaseDetails")}</h3>
               <div className="release-grid">
                 <div>
-                  <span>Release name</span>
-                  <strong>{app.release?.name ?? "Unknown"}</strong>
+                  <span>{t("releaseName")}</span>
+                  <strong>{app.release?.name ?? t("unknown")}</strong>
                 </div>
                 <div>
-                  <span>Published</span>
-                  <strong>{formatDateTime(app.release?.published_at)}</strong>
+                  <span>{t("published")}</span>
+                  <strong>{formatDateTime(app.release?.published_at, locale, t("unknown"))}</strong>
                 </div>
                 <div>
-                  <span>Bundle SHA256</span>
-                  <strong className="hash-block">{app.bundle?.sha256 ?? "Unavailable"}</strong>
+                  <span>{t("bundleSha")}</span>
+                  <strong className="hash-block">{app.bundle?.sha256 ?? t("unavailable")}</strong>
                 </div>
               </div>
             </div>
@@ -401,27 +427,31 @@ function DetailPage({ status, apps, remote, error }) {
 
           <aside className="spec-panel">
             <div className="spec-item">
-              <span>Bundle file</span>
-              <strong>{app.bundle?.asset_name ?? "Unknown"}</strong>
+              <span>{t("bundleFile")}</span>
+              <strong>{app.bundle?.asset_name ?? t("unknown")}</strong>
             </div>
             <div className="spec-item">
-              <span>Branch</span>
+              <span>{t("branch")}</span>
               <strong>{app.branch}</strong>
             </div>
             <div className="spec-item">
-              <span>Upstream release</span>
+              <span>{t("upstreamRelease")}</span>
               <strong>
                 {app.release?.url ? (
-                  <a href={app.release.url}>Open release notes</a>
+                  <a href={app.release.url}>{t("openReleaseNotes")}</a>
                 ) : (
-                  "Unavailable"
+                  t("unavailable")
                 )}
               </strong>
             </div>
             <div className="spec-item">
-              <span>Remote repository</span>
+              <span>{t("remoteRepository")}</span>
               <strong>
-                {remote?.repo_url ? <a href={remote.repo_url}>Open repository</a> : "Unavailable"}
+                {remote?.repo_url ? (
+                  <a href={remote.repo_url}>{t("openRepository")}</a>
+                ) : (
+                  t("unavailable")
+                )}
               </strong>
             </div>
           </aside>
