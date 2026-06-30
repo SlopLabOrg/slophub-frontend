@@ -36,6 +36,7 @@ body,
 body {
   margin: 0;
   min-height: 100vh;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at top left, rgba(124, 92, 255, 0.16), transparent 32%),
     radial-gradient(circle at top right, rgba(31, 209, 194, 0.14), transparent 28%),
@@ -482,11 +483,15 @@ input {
 .command-block {
   margin: 0;
   padding: 16px;
-  overflow: auto;
   border-radius: 16px;
   background: rgba(9, 13, 24, 0.72);
   border: 1px solid var(--border);
   color: var(--text);
+}
+
+.command-block code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .release-grid {
@@ -564,5 +569,16 @@ input {
   .hero h2 {
     max-width: none;
     font-size: 40px;
+  }
+
+  .detail-actions {
+    width: 100%;
+  }
+
+  .detail-actions .btn {
+    width: 100%;
+    height: auto;
+    min-height: 42px;
+    padding: 12px 16px;
   }
 }
