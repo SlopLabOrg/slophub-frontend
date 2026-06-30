@@ -85,44 +85,49 @@ function AppShell({ remote, generatedAt, children }) {
       <aside className="sidebar">
         <Link to="/" className="brand">
           <div className="brand-mark">S</div>
-          <div>
+          <div className="brand-copy">
             <p className="eyebrow">{t("appMarketplace")}</p>
             <h1>Slophub</h1>
           </div>
         </Link>
 
-        <div className="sidebar-panel">
-          <p className="sidebar-label">{t("theme")}</p>
-          <div className="theme-switcher">
-            {["nova", "pulse", "lava"].map((item) => (
+        <div className="sidebar-panel sidebar-controls">
+          <div className="sidebar-group">
+            <p className="sidebar-label">{t("language")}</p>
+            <div className="locale-switcher">
               <button
-                key={item}
-                className={`theme-dot ${theme === item ? "active" : ""}`}
-                data-theme={item}
-                aria-label={`${item} theme`}
-                onClick={() => setTheme(item)}
-              />
-            ))}
+                className={`locale-pill ${locale === "en" ? "active" : ""}`}
+                onClick={() => setLocale("en")}
+              >
+                {t("english")}
+              </button>
+              <button
+                className={`locale-pill ${locale === "pt" ? "active" : ""}`}
+                onClick={() => setLocale("pt")}
+              >
+                {t("portuguese")}
+              </button>
+            </div>
           </div>
-          <p className="sidebar-copy">{t("curatedNotScraped")}</p>
+
+          <div className="sidebar-group">
+            <p className="sidebar-label">{t("theme")}</p>
+            <div className="theme-switcher">
+              {["nova", "pulse", "lava"].map((item) => (
+                <button
+                  key={item}
+                  className={`theme-dot ${theme === item ? "active" : ""}`}
+                  data-theme={item}
+                  aria-label={`${item} theme`}
+                  onClick={() => setTheme(item)}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="sidebar-panel">
-          <p className="sidebar-label">{t("language")}</p>
-          <div className="locale-switcher">
-            <button
-              className={`locale-pill ${locale === "en" ? "active" : ""}`}
-              onClick={() => setLocale("en")}
-            >
-              {t("english")}
-            </button>
-            <button
-              className={`locale-pill ${locale === "pt" ? "active" : ""}`}
-              onClick={() => setLocale("pt")}
-            >
-              {t("portuguese")}
-            </button>
-          </div>
+          <p className="sidebar-copy sidebar-copy-strong">{t("curatedNotScraped")}</p>
         </div>
 
         <div className="sidebar-panel">
@@ -228,20 +233,27 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
 
       <section className="catalog-shell">
         <div className="catalog-header">
-          <div>
+          <div className="catalog-title-block">
             <p className="eyebrow">{t("catalog")}</p>
             <h3>{t("curatedApplications")}</h3>
             <p className="section-copy">{t("catalogCopy")}</p>
           </div>
-          <label className="search-input">
-            <span>{t("search")}</span>
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={t("searchPlaceholder")}
-            />
-          </label>
+          <div className="catalog-tools">
+            <div className="result-count">
+              <span className="sidebar-label">
+                {filteredApps.length} {t("results")}
+              </span>
+            </div>
+            <label className="search-input">
+              <span>{t("search")}</span>
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={t("searchPlaceholder")}
+              />
+            </label>
+          </div>
         </div>
 
         <div className="app-grid">
@@ -354,17 +366,10 @@ function DetailPage({ status, apps, remote, error }) {
         <div className="detail-top">
           <div className="detail-identity">
             <img className="detail-icon-image" src={app.icon_url} alt="" />
-            <div>
+            <div className="detail-heading">
               <p className="eyebrow">{t("application")}</p>
               <h2>{app.title}</h2>
               <p className="detail-description">{app.description}</p>
-              <div className="badge-row">
-                <span className="badge badge-solid">{app.branch}</span>
-                {app.release?.tag ? (
-                  <span className="badge badge-neutral">{app.release.tag}</span>
-                ) : null}
-                <span className="badge badge-neutral">{remote?.name ?? "slophub"}</span>
-              </div>
             </div>
           </div>
 
@@ -387,11 +392,30 @@ function DetailPage({ status, apps, remote, error }) {
           </div>
         </div>
 
+        <div className="overview-row">
+          <div className="overview-card">
+            <span>{t("branch")}</span>
+            <strong>{app.branch}</strong>
+          </div>
+          <div className="overview-card">
+            <span>{t("releaseName")}</span>
+            <strong>{app.release?.tag ?? app.release?.name ?? t("unknown")}</strong>
+          </div>
+          <div className="overview-card">
+            <span>{t("publishedAt")}</span>
+            <strong>{formatDateTime(app.release?.published_at, locale, t("unknown"))}</strong>
+          </div>
+          <div className="overview-card">
+            <span>{t("source")}</span>
+            <strong>{remote?.name ?? "slophub"}</strong>
+          </div>
+        </div>
+
         <div className="detail-body">
           <div className="preview-panel">
             <div className="preview-header">
               <span className="status-dot" />
-              <span>{t("flatpakMetadata")}</span>
+              <span>{t("overview")}</span>
             </div>
 
             <div className="detail-section">
