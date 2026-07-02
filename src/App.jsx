@@ -60,10 +60,69 @@ function useSlophubData() {
   return state;
 }
 
-function confirmRiskyAction(event, message) {
-  if (!window.confirm(message)) {
-    event.preventDefault();
+function RiskyLink({ href, download = false, className, children }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const { t } = useI18n();
+
+  function continueToTarget() {
+    setIsOpen(false);
+
+    const link = document.createElement("a");
+    link.href = href;
+
+    if (download) {
+      link.download = typeof download === "string" ? download : "";
+    }
+
+    document.body.append(link);
+    link.click();
+    link.remove();
   }
+
+  return (
+    <>
+      <a
+        className={className}
+        href={href}
+        download={download}
+        onClick={(event) => {
+          event.preventDefault();
+          setIsOpen(true);
+        }}
+      >
+        {children}
+      </a>
+
+      {isOpen ? (
+        <div className="modal-backdrop" role="presentation">
+          <div
+            className="risk-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="risk-modal-title"
+          >
+            <div className="risk-modal-icon">!</div>
+            <div className="risk-modal-copy">
+              <p className="eyebrow">{t("securityNotice")}</p>
+              <h2 id="risk-modal-title">{t("installRiskTitle")}</h2>
+              <p>{t("installRiskPrompt")}</p>
+            </div>
+            <div className="risk-modal-actions">
+              <button
+                className="btn btn-ghost"
+                onClick={() => setIsOpen(false)}
+              >
+                {t("cancel")}
+              </button>
+              <button className="btn btn-primary" onClick={continueToTarget}>
+                {t("installRiskContinue")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
 }
 
 function formatDate(value, locale, fallback) {
@@ -100,15 +159,9 @@ function AppShell({ remote, generatedAt, children }) {
             <a href={remote.repo_url}>{t("repository")}</a>
           ) : null}
           {remote?.flatpakrepo_url ? (
-            <a
-              href={remote.flatpakrepo_url}
-              download
-              onClick={(event) =>
-                confirmRiskyAction(event, t("installRiskPrompt"))
-              }
-            >
+            <RiskyLink href={remote.flatpakrepo_url} download>
               {t("download")}
-            </a>
+            </RiskyLink>
           ) : null}
         </nav>
 
@@ -272,7 +325,7 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
           <div className="catalog-header">
             <div>
               <p className="eyebrow">{t("catalog")}</p>
-              <h2>{t("curatedApplications")}</h2>
+              <h2>{t("listedApplications")}</h2>
               <p className="section-copy">{t("catalogCopy")}</p>
             </div>
             <div className="result-count">
@@ -401,26 +454,20 @@ function DetailPage({ status, apps, remote, error }) {
             <h2>{t("installAndResources")}</h2>
             <div className="detail-actions">
               {app.flatpakref_url ? (
-                <a
+                <RiskyLink
                   className="btn btn-primary"
                   href={app.flatpakref_url}
-                  onClick={(event) =>
-                    confirmRiskyAction(event, t("installRiskPrompt"))
-                  }
                 >
                   {t("installViaFlatpak")}
-                </a>
+                </RiskyLink>
               ) : null}
               {app.bundle?.download_url ? (
-                <a
+                <RiskyLink
                   className="btn btn-secondary"
                   href={app.bundle.download_url}
-                  onClick={(event) =>
-                    confirmRiskyAction(event, t("installRiskPrompt"))
-                  }
                 >
                   {t("downloadBundle")}
-                </a>
+                </RiskyLink>
               ) : null}
               {app.homepage_url ? (
                 <a className="btn btn-ghost" href={app.homepage_url}>

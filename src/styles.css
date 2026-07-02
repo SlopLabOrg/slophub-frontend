@@ -728,6 +728,62 @@ button {
     border-color: var(--border);
 }
 
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(37, 27, 63, 0.46);
+    backdrop-filter: blur(10px);
+}
+
+.risk-modal {
+    width: min(100%, 520px);
+    display: grid;
+    gap: 18px;
+    padding: 24px;
+    border: 1px solid rgba(222, 216, 245, 0.9);
+    border-radius: 26px;
+    background: var(--surface);
+    box-shadow: 0 28px 80px rgba(37, 27, 63, 0.28);
+}
+
+.risk-modal-icon {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.risk-modal-copy {
+    display: grid;
+    gap: 10px;
+}
+
+.risk-modal-copy h2,
+.risk-modal-copy p {
+    margin: 0;
+}
+
+.risk-modal-copy p:not(.eyebrow) {
+    color: var(--muted);
+    line-height: 1.65;
+}
+
+.risk-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .overview-row {
     grid-template-columns: repeat(3, minmax(0, 1fr)) 290px;
     gap: 18px;
