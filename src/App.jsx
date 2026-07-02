@@ -4,7 +4,22 @@ import { useI18n } from "./i18n";
 
 const APPS_URL = "https://dl.sloplab.org/apps.json";
 
-const CATEGORY_KEYS = ["all", "data", "developer", "productivity", "ai"];
+const CATEGORY_KEYS = [
+  "Applets",
+  "Multimedia",
+  "Database",
+  "Development",
+  "Education",
+  "Game",
+  "Graphics",
+  "Network",
+  "Office",
+  "Science",
+  "Settings",
+  "Spreadsheet",
+  "System",
+  "Utility",
+];
 
 function useSlophubData() {
   const [state, setState] = useState({
@@ -211,15 +226,18 @@ function StateView({ title, copy, action }) {
 
 function HomePage({ status, apps, remote, generatedAt, error }) {
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("all");
+  const [category, setCategory] = useState(null);
   const { locale, t } = useI18n();
 
   const categoryCounts = useMemo(() => {
     return apps.reduce(
       (counts, app) => {
-        const appCategory = inferCategory(app);
         counts.all += 1;
-        counts[appCategory] = (counts[appCategory] ?? 0) + 1;
+
+        new Set(categoriesForApp(app)).forEach((appCategory) => {
+          counts[appCategory] = (counts[appCategory] ?? 0) + 1;
+        });
+
         return counts;
       },
       { all: 0 },
@@ -231,7 +249,7 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
 
     return apps.filter((app) => {
       const matchesCategory =
-        category === "all" || inferCategory(app) === category;
+        !category || categoriesForApp(app).includes(category);
       const matchesQuery = normalizedQuery
         ? [app.title, app.description, app.app_id, app.release?.tag]
             .filter(Boolean)
@@ -308,13 +326,20 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
           <p>{t("browseByCategoryCopy")}</p>
 
           <div className="category-list">
+            <button
+              className={`category-button ${category === null ? "active" : ""}`}
+              onClick={() => setCategory(null)}
+            >
+              <span>{t("category.all")}</span>
+              <strong>{categoryCounts.all ?? 0}</strong>
+            </button>
             {CATEGORY_KEYS.map((key) => (
               <button
                 key={key}
                 className={`category-button ${category === key ? "active" : ""}`}
                 onClick={() => setCategory(key)}
               >
-                <span>{t(`category.${key}`)}</span>
+                <span>{categoryLabel(key)}</span>
                 <strong>{categoryCounts[key] ?? 0}</strong>
               </button>
             ))}
@@ -345,9 +370,11 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
                 </div>
                 <p className="app-description">{app.description}</p>
                 <div className="badge-row">
-                  <span className="badge badge-solid">
-                    {t(`category.${inferCategory(app)}`)}
-                  </span>
+                  {categoriesForApp(app).map((appCategory) => (
+                    <span key={appCategory} className="badge badge-solid">
+                      {categoryLabel(appCategory)}
+                    </span>
+                  ))}
                   <span className="badge badge-neutral">
                     {app.release?.tag ?? app.branch}
                   </span>
@@ -444,7 +471,10 @@ function DetailPage({ status, apps, remote, error }) {
           <div className="detail-identity">
             <img className="detail-icon-image" src={app.icon_url} alt="" />
             <div className="detail-heading">
-              <p className="eyebrow">{t(`category.${inferCategory(app)}`)}</p>
+              <p className="eyebrow">
+                {categoriesForApp(app).map(categoryLabel).join(" · ") ||
+                  t("uncategorized")}
+              </p>
               <h1>{app.title}</h1>
               <p className="detail-description">{app.description}</p>
             </div>
@@ -564,25 +594,18 @@ function DetailPage({ status, apps, remote, error }) {
   );
 }
 
-function inferCategory(app) {
-  const haystack = [app.title, app.description, app.app_id]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  if (/parquet|duckdb|query|data|database|analytics|csv|sql/.test(haystack)) {
-    return "data";
+function categoriesForApp(app) {
+  if (!Array.isArray(app?.categories)) {
+    return [];
   }
 
-  if (/developer|code|git|api|terminal|debug|dev/.test(haystack)) {
-    return "developer";
-  }
+  return [...new Set(app.categories)].filter((category) =>
+    CATEGORY_KEYS.includes(category),
+  );
+}
 
-  if (/ai|llm|model|chat|agent|prompt/.test(haystack)) {
-    return "ai";
-  }
-
-  return "productivity";
+function categoryLabel(category) {
+  return category;
 }
 
 export default function App() {

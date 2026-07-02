@@ -37,10 +37,7 @@ const dictionaries = {
     browseByCategoryCopy:
       "Use the category rail to narrow the marketplace while keeping search active.",
     "category.all": "All apps",
-    "category.data": "Data & analytics",
-    "category.developer": "Developer tools",
-    "category.productivity": "Productivity",
-    "category.ai": "AI tools",
+    uncategorized: "Uncategorized",
     published: "Published",
     viewListing: "View listing",
     openAppPage: "Open app page",
@@ -118,10 +115,7 @@ const dictionaries = {
     browseByCategoryCopy:
       "Use a trilha de categorias para refinar o marketplace sem perder a busca ativa.",
     "category.all": "Todos os apps",
-    "category.data": "Dados e analytics",
-    "category.developer": "Ferramentas dev",
-    "category.productivity": "Produtividade",
-    "category.ai": "Ferramentas de IA",
+    uncategorized: "Sem categoria",
     published: "Publicado",
     viewListing: "Ver listagem",
     openAppPage: "Abrir página do app",
