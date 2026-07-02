@@ -3,6 +3,7 @@ import { Link, Route, Routes, useParams } from "react-router-dom";
 import { useI18n } from "./i18n";
 
 const APPS_URL = "https://dl.sloplab.org/apps.json";
+const SESSION_CACHE_KEY = "slophub.sessionCacheId";
 
 const CATEGORY_KEYS = [
   "Audio",
@@ -42,6 +43,21 @@ const CATEGORY_EMOJIS = {
   Video: "📹",
 };
 
+function appsUrlForSession() {
+  if (typeof window === "undefined") {
+    return APPS_URL;
+  }
+
+  let cacheId = window.sessionStorage.getItem(SESSION_CACHE_KEY);
+
+  if (!cacheId) {
+    cacheId = String(Date.now());
+    window.sessionStorage.setItem(SESSION_CACHE_KEY, cacheId);
+  }
+
+  return `${APPS_URL}?v=${cacheId}`;
+}
+
 function useSlophubData() {
   const [state, setState] = useState({
     status: "loading",
@@ -56,7 +72,9 @@ function useSlophubData() {
 
     async function load() {
       try {
-        const response = await fetch(APPS_URL);
+        const response = await fetch(appsUrlForSession(), {
+          cache: "no-store",
+        });
 
         if (!response.ok) {
           throw new Error(`Request failed with status ${response.status}`);
