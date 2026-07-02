@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Route, Routes, useParams } from "react-router-dom";
 import { useI18n } from "./i18n";
 
-const APPS_URL = "https://ai-slophub.github.io/slophub/apps.json";
+const APPS_URL = "https://dl.sloplab.org/apps.json";
+
+const CATEGORY_KEYS = ["all", "data", "developer", "productivity", "ai"];
 
 function useSlophubData() {
   const [state, setState] = useState({
@@ -69,12 +71,7 @@ function formatDate(value, locale, fallback) {
 }
 
 function AppShell({ remote, generatedAt, children }) {
-  const [theme, setTheme] = useState("nova");
   const { locale, setLocale, t } = useI18n();
-
-  useEffect(() => {
-    document.body.dataset.theme = theme;
-  }, [theme]);
 
   useEffect(() => {
     document.documentElement.lang = locale === "pt" ? "pt-BR" : "en";
@@ -82,68 +79,54 @@ function AppShell({ remote, generatedAt, children }) {
 
   return (
     <div className="shell">
-      <aside className="sidebar">
+      <header className="topbar">
         <Link to="/" className="brand">
           <div className="brand-mark">S</div>
           <div className="brand-copy">
-            <p className="eyebrow">{t("appMarketplace")}</p>
-            <h1>Slophub</h1>
+            <strong>Slophub</strong>
+            <span>{t("appMarketplace")}</span>
           </div>
         </Link>
 
-        <div className="sidebar-panel sidebar-controls">
-          <div className="sidebar-group">
-            <p className="sidebar-label">{t("language")}</p>
-            <div className="locale-switcher">
-              <button
-                className={`locale-pill ${locale === "en" ? "active" : ""}`}
-                onClick={() => setLocale("en")}
-              >
-                {t("english")}
-              </button>
-              <button
-                className={`locale-pill ${locale === "pt" ? "active" : ""}`}
-                onClick={() => setLocale("pt")}
-              >
-                {t("portuguese")}
-              </button>
-            </div>
-          </div>
+        <nav className="topnav" aria-label={t("primaryNavigation")}>
+          <a href="#catalog">{t("catalog")}</a>
+          {remote?.repo_url ? (
+            <a href={remote.repo_url}>{t("repository")}</a>
+          ) : null}
+          {remote?.flatpakrepo_url ? (
+            <a href={remote.flatpakrepo_url} download>
+              {t("download")}
+            </a>
+          ) : null}
+        </nav>
 
-          <div className="sidebar-group">
-            <p className="sidebar-label">{t("theme")}</p>
-            <div className="theme-switcher">
-              {["nova", "pulse", "lava"].map((item) => (
-                <button
-                  key={item}
-                  className={`theme-dot ${theme === item ? "active" : ""}`}
-                  data-theme={item}
-                  aria-label={`${item} theme`}
-                  onClick={() => setTheme(item)}
-                />
-              ))}
-            </div>
-          </div>
+        <div className="topbar-actions" aria-label={t("language")}>
+          <button
+            className={`locale-pill ${locale === "en" ? "active" : ""}`}
+            onClick={() => setLocale("en")}
+          >
+            EN
+          </button>
+          <button
+            className={`locale-pill ${locale === "pt" ? "active" : ""}`}
+            onClick={() => setLocale("pt")}
+          >
+            PT
+          </button>
         </div>
+      </header>
 
-        <div className="sidebar-panel">
-          <p className="sidebar-copy sidebar-copy-strong">{t("curatedNotScraped")}</p>
-        </div>
+      <main className="content">
+        {children}
 
-        <div className="sidebar-panel">
-          <p className="sidebar-label">{t("remote")}</p>
-          <strong>{remote?.title ?? t("loadingRemote")}</strong>
-          <p className="sidebar-copy">
-            {remote?.description ??
-              t("fetchingRemoteFallback")}
-          </p>
-          <p className="sidebar-meta">
-            {t("metadataSynced")} {formatDate(generatedAt, locale, t("unknown"))}
-          </p>
-        </div>
-      </aside>
-
-      <main className="content">{children}</main>
+        <footer className="footer-note">
+          <span>
+            {t("metadataSynced")}:{" "}
+            {formatDate(generatedAt, locale, t("unknown"))}
+          </span>
+          <span>{remote?.description ?? t("fetchingRemoteFallback")}</span>
+        </footer>
+      </main>
     </div>
   );
 }
@@ -163,21 +146,36 @@ function StateView({ title, copy, action }) {
 
 function HomePage({ status, apps, remote, generatedAt, error }) {
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("all");
   const { locale, t } = useI18n();
+
+  const categoryCounts = useMemo(() => {
+    return apps.reduce(
+      (counts, app) => {
+        const appCategory = inferCategory(app);
+        counts.all += 1;
+        counts[appCategory] = (counts[appCategory] ?? 0) + 1;
+        return counts;
+      },
+      { all: 0 },
+    );
+  }, [apps]);
 
   const filteredApps = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
     return apps.filter((app) => {
-      if (!normalizedQuery) {
-        return true;
-      }
+      const matchesCategory =
+        category === "all" || inferCategory(app) === category;
+      const matchesQuery = normalizedQuery
+        ? [app.title, app.description, app.app_id, app.release?.tag]
+            .filter(Boolean)
+            .some((value) => value.toLowerCase().includes(normalizedQuery))
+        : true;
 
-      return [app.title, app.description, app.app_id]
-        .filter(Boolean)
-        .some((value) => value.toLowerCase().includes(normalizedQuery));
+      return matchesCategory && matchesQuery;
     });
-  }, [apps, query]);
+  }, [apps, category, query]);
 
   if (status === "loading") {
     return (
@@ -205,87 +203,104 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
   return (
     <>
       <section className="hero">
-        <div className="hero-copy-block">
-          <p className="eyebrow">{t("beyondTheSlop")}</p>
-          <h2>{t("heroTitle")}</h2>
-          <p className="hero-copy">{t("heroCopy")}</p>
+        <div className="hero-kicker">
+          <span className="status-dot" />
+          <span>{t("trustedCatalog")}</span>
         </div>
+        <h1>{t("heroTitle")}</h1>
+        <p className="hero-copy">{t("heroCopy")}</p>
 
-        <div className="hero-card">
-          <div className="hero-card-top">
-            <span className="status-dot" />
-            <span>
-              {apps.length} {t("appsIndexed")}
-            </span>
+        <label className="hero-search">
+          <span>{t("search")}</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t("searchPlaceholder")}
+          />
+        </label>
+
+        <div className="hero-metrics" aria-label={t("catalogStats")}>
+          <div>
+            <strong>{apps.length}</strong>
+            <span>{t("appsIndexed")}</span>
           </div>
-          <div className="metric-row">
-            <div>
-              <span>{t("remote")}</span>
-              <strong>{remote?.name ?? "slophub"}</strong>
-            </div>
-            <div>
-              <span>{t("lastSync")}</span>
-              <strong>{formatDate(generatedAt, locale, t("unknown"))}</strong>
-            </div>
+          <div>
+            <strong>{remote?.title ?? "Slophub"}</strong>
+            <span>{t("source")}</span>
+          </div>
+          <div>
+            <strong>{formatDate(generatedAt, locale, t("unknown"))}</strong>
+            <span>{t("lastSync")}</span>
           </div>
         </div>
       </section>
 
-      <section className="catalog-shell">
-        <div className="catalog-header">
-          <div className="catalog-title-block">
-            <p className="eyebrow">{t("catalog")}</p>
-            <h3>{t("curatedApplications")}</h3>
-            <p className="section-copy">{t("catalogCopy")}</p>
-          </div>
-          <div className="catalog-tools">
-            <div className="result-count">
-              <span className="sidebar-label">
-                {filteredApps.length} {t("results")}
-              </span>
-            </div>
-            <label className="search-input">
-              <span>{t("search")}</span>
-              <input
-                type="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder={t("searchPlaceholder")}
-              />
-            </label>
-          </div>
-        </div>
+      <section className="marketplace-layout" id="catalog">
+        <aside className="filter-panel" aria-label={t("filters")}>
+          <p className="eyebrow">{t("explore")}</p>
+          <h2>{t("browseByCategory")}</h2>
+          <p>{t("browseByCategoryCopy")}</p>
 
-        <div className="app-grid">
-          {filteredApps.map((app, index) => (
-            <Link
-              key={app.app_id}
-              to={`/${app.app_id}`}
-              className="app-card"
-              style={{ "--card-accent": accentByIndex(index) }}
-            >
-              <div className="app-head">
-                <img className="app-icon-image" src={app.icon_url} alt="" />
-                <div>
-                  <h4>{app.title}</h4>
-                  <p>{app.app_id}</p>
+          <div className="category-list">
+            {CATEGORY_KEYS.map((key) => (
+              <button
+                key={key}
+                className={`category-button ${category === key ? "active" : ""}`}
+                onClick={() => setCategory(key)}
+              >
+                <span>{t(`category.${key}`)}</span>
+                <strong>{categoryCounts[key] ?? 0}</strong>
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        <div className="catalog-shell">
+          <div className="catalog-header">
+            <div>
+              <p className="eyebrow">{t("catalog")}</p>
+              <h2>{t("curatedApplications")}</h2>
+              <p className="section-copy">{t("catalogCopy")}</p>
+            </div>
+            <div className="result-count">
+              {filteredApps.length} {t("results")}
+            </div>
+          </div>
+
+          <div className="app-grid">
+            {filteredApps.map((app) => (
+              <Link key={app.app_id} to={`/${app.app_id}`} className="app-card">
+                <div className="app-head">
+                  <img className="app-icon-image" src={app.icon_url} alt="" />
+                  <div>
+                    <h3>{app.title}</h3>
+                    <p>{app.app_id}</p>
+                  </div>
                 </div>
-              </div>
-              <p className="app-description">{app.description}</p>
-              <div className="badge-row">
-                <span className="badge badge-solid">{app.branch}</span>
-                {app.release?.tag ? (
-                  <span className="badge badge-neutral">{app.release.tag}</span>
-                ) : null}
-              </div>
-              <div className="app-meta">
-                <span>
-                  {t("published")} {formatDate(app.release?.published_at, locale, t("unknown"))}
-                </span>
-                <span>{t("openAppPage")}</span>
-              </div>
-            </Link>
-          ))}
+                <p className="app-description">{app.description}</p>
+                <div className="badge-row">
+                  <span className="badge badge-solid">
+                    {t(`category.${inferCategory(app)}`)}
+                  </span>
+                  <span className="badge badge-neutral">
+                    {app.release?.tag ?? app.branch}
+                  </span>
+                </div>
+                <div className="app-meta">
+                  <span>
+                    {t("published")}{" "}
+                    {formatDate(
+                      app.release?.published_at,
+                      locale,
+                      t("unknown"),
+                    )}
+                  </span>
+                  <strong>{t("viewListing")}</strong>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
     </>
@@ -317,10 +332,7 @@ function DetailPage({ status, apps, remote, error }) {
 
   if (status === "loading") {
     return (
-      <StateView
-        title={t("loadingApplication")}
-        copy={t("resolvingPackage")}
-      />
+      <StateView title={t("loadingApplication")} copy={t("resolvingPackage")} />
     );
   }
 
@@ -359,37 +371,40 @@ function DetailPage({ status, apps, remote, error }) {
   return (
     <>
       <div className="page-backlink">
-        <Link to="/">{t("backToCatalog")}</Link>
+        <Link to="/">← {t("backToCatalog")}</Link>
       </div>
 
       <section className="detail-shell">
-        <div className="detail-top">
+        <div className="detail-hero">
           <div className="detail-identity">
             <img className="detail-icon-image" src={app.icon_url} alt="" />
             <div className="detail-heading">
-              <p className="eyebrow">{t("application")}</p>
-              <h2>{app.title}</h2>
+              <p className="eyebrow">{t(`category.${inferCategory(app)}`)}</p>
+              <h1>{app.title}</h1>
               <p className="detail-description">{app.description}</p>
             </div>
           </div>
 
-          <div className="detail-actions">
-            {app.flatpakref_url ? (
-              <a className="btn btn-primary" href={app.flatpakref_url}>
-                {t("installViaFlatpak")}
-              </a>
-            ) : null}
-            {app.bundle?.download_url ? (
-              <a className="btn btn-secondary" href={app.bundle.download_url}>
-                {t("downloadBundle")}
-              </a>
-            ) : null}
-            {app.homepage_url ? (
-              <a className="btn btn-ghost" href={app.homepage_url}>
-                {t("homepage")}
-              </a>
-            ) : null}
-          </div>
+          <aside className="action-panel">
+            <h2>{t("installAndResources")}</h2>
+            <div className="detail-actions">
+              {app.flatpakref_url ? (
+                <a className="btn btn-primary" href={app.flatpakref_url}>
+                  {t("installViaFlatpak")}
+                </a>
+              ) : null}
+              {app.bundle?.download_url ? (
+                <a className="btn btn-secondary" href={app.bundle.download_url}>
+                  {t("downloadBundle")}
+                </a>
+              ) : null}
+              {app.homepage_url ? (
+                <a className="btn btn-ghost" href={app.homepage_url}>
+                  {t("homepage")}
+                </a>
+              ) : null}
+            </div>
+          </aside>
         </div>
 
         <div className="overview-row">
@@ -399,11 +414,15 @@ function DetailPage({ status, apps, remote, error }) {
           </div>
           <div className="overview-card">
             <span>{t("releaseName")}</span>
-            <strong>{app.release?.tag ?? app.release?.name ?? t("unknown")}</strong>
+            <strong>
+              {app.release?.tag ?? app.release?.name ?? t("unknown")}
+            </strong>
           </div>
           <div className="overview-card">
             <span>{t("publishedAt")}</span>
-            <strong>{formatDateTime(app.release?.published_at, locale, t("unknown"))}</strong>
+            <strong>
+              {formatDateTime(app.release?.published_at, locale, t("unknown"))}
+            </strong>
           </div>
           <div className="overview-card">
             <span>{t("source")}</span>
@@ -413,25 +432,20 @@ function DetailPage({ status, apps, remote, error }) {
 
         <div className="detail-body">
           <div className="preview-panel">
-            <div className="preview-header">
-              <span className="status-dot" />
-              <span>{t("overview")}</span>
-            </div>
-
             <div className="detail-section">
-              <h3>{t("applicationId")}</h3>
+              <h2>{t("applicationId")}</h2>
               <p className="detail-copy">{app.app_id}</p>
             </div>
 
             <div className="detail-section">
-              <h3>{t("installCommand")}</h3>
+              <h2>{t("installCommand")}</h2>
               <pre className="command-block">
                 <code>{installCommand ?? t("noInstallCommand")}</code>
               </pre>
             </div>
 
             <div className="detail-section">
-              <h3>{t("releaseDetails")}</h3>
+              <h2>{t("releaseDetails")}</h2>
               <div className="release-grid">
                 <div>
                   <span>{t("releaseName")}</span>
@@ -439,11 +453,19 @@ function DetailPage({ status, apps, remote, error }) {
                 </div>
                 <div>
                   <span>{t("published")}</span>
-                  <strong>{formatDateTime(app.release?.published_at, locale, t("unknown"))}</strong>
+                  <strong>
+                    {formatDateTime(
+                      app.release?.published_at,
+                      locale,
+                      t("unknown"),
+                    )}
+                  </strong>
                 </div>
                 <div>
                   <span>{t("bundleSha")}</span>
-                  <strong className="hash-block">{app.bundle?.sha256 ?? t("unavailable")}</strong>
+                  <strong className="hash-block">
+                    {app.bundle?.sha256 ?? t("unavailable")}
+                  </strong>
                 </div>
               </div>
             </div>
@@ -455,24 +477,10 @@ function DetailPage({ status, apps, remote, error }) {
               <strong>{app.bundle?.asset_name ?? t("unknown")}</strong>
             </div>
             <div className="spec-item">
-              <span>{t("branch")}</span>
-              <strong>{app.branch}</strong>
-            </div>
-            <div className="spec-item">
               <span>{t("upstreamRelease")}</span>
               <strong>
                 {app.release?.url ? (
                   <a href={app.release.url}>{t("openReleaseNotes")}</a>
-                ) : (
-                  t("unavailable")
-                )}
-              </strong>
-            </div>
-            <div className="spec-item">
-              <span>{t("remoteRepository")}</span>
-              <strong>
-                {remote?.repo_url ? (
-                  <a href={remote.repo_url}>{t("openRepository")}</a>
                 ) : (
                   t("unavailable")
                 )}
@@ -485,15 +493,25 @@ function DetailPage({ status, apps, remote, error }) {
   );
 }
 
-function accentByIndex(index) {
-  const accents = [
-    "linear-gradient(135deg, #7c5cff, #1fd1c2)",
-    "linear-gradient(135deg, #ff4d8d, #ffb84d)",
-    "linear-gradient(135deg, #45caff, #74e27f)",
-    "linear-gradient(135deg, #9b5cff, #ff7a18)",
-  ];
+function inferCategory(app) {
+  const haystack = [app.title, app.description, app.app_id]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 
-  return accents[index % accents.length];
+  if (/parquet|duckdb|query|data|database|analytics|csv|sql/.test(haystack)) {
+    return "data";
+  }
+
+  if (/developer|code|git|api|terminal|debug|dev/.test(haystack)) {
+    return "developer";
+  }
+
+  if (/ai|llm|model|chat|agent|prompt/.test(haystack)) {
+    return "ai";
+  }
+
+  return "productivity";
 }
 
 export default function App() {

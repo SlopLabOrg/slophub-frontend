@@ -2,12 +2,14 @@ import { createContext, useContext, useMemo, useState } from "react";
 
 const dictionaries = {
   en: {
-    appMarketplace: "AI app catalog",
-    theme: "Theme",
+    appMarketplace: "App marketplace",
     language: "Language",
+    primaryNavigation: "Primary navigation",
+    trustedCatalog: "Curated Flatpak marketplace",
     curatedNotScraped:
       "Curated, not scraped. Real packages, real release files, direct install targets.",
     remote: "Remote",
+    repository: "Repository",
     loadingRemote: "Loading remote",
     fetchingRemoteFallback:
       "Fetching repository metadata, release links, and publication details.",
@@ -18,20 +20,31 @@ const dictionaries = {
     couldNotLoadSlophub: "Could not load Slophub",
     unknownError: "Unknown error while loading data.",
     openSourceFeed: "Open source feed",
-    beyondTheSlop: "Beyond the slop",
-    heroTitle: "AI apps with actual taste, packaged for direct install.",
+    heroTitle: "Find install-ready AI and data apps for your desktop.",
     heroCopy:
-      "Slophub is a curated catalog of AI-adjacent desktop apps that do something real: clear metadata, upstream releases, and Flatpak install targets in one place.",
+      "Explore a curated catalog with clear metadata, upstream releases, Flatpak install targets, and a marketplace experience built for fast discovery.",
     appsIndexed: "apps indexed",
     lastSync: "Last sync",
+    catalogStats: "Catalog stats",
     catalog: "Catalog",
     curatedApplications: "Curated applications",
     results: "results",
     catalogCopy:
-      "Search by title, application ID, or summary. Open any card for release details, upstream links, and Flatpak installation files.",
-    search: "Search",
-    searchPlaceholder: "Parquetta, query tools, DuckDB...",
+      "Compare listings, scan release details, and open any app page for installation files and upstream resources.",
+    search: "Search apps",
+    searchPlaceholder: "Search by name, app ID, DuckDB, Flatpak...",
+    filters: "Filters",
+    explore: "Explore",
+    browseByCategory: "Browse by category",
+    browseByCategoryCopy:
+      "Use the category rail to narrow the marketplace while keeping search active.",
+    "category.all": "All apps",
+    "category.data": "Data & analytics",
+    "category.developer": "Developer tools",
+    "category.productivity": "Productivity",
+    "category.ai": "AI tools",
     published: "Published",
+    viewListing: "View listing",
     openAppPage: "Open app page",
     loadingApplication: "Loading application",
     resolvingPackage: "Resolving package metadata and install targets.",
@@ -40,7 +53,9 @@ const dictionaries = {
     applicationNotFound: "Application not found",
     noPackageMatches: 'No Slophub package matches "{appId}".',
     application: "Application",
+    installAndResources: "Install and resources",
     installViaFlatpak: "Install via Flatpak",
+    download: "Download",
     downloadBundle: "Download bundle",
     homepage: "Homepage",
     flatpakMetadata: "Flatpak metadata",
@@ -57,20 +72,21 @@ const dictionaries = {
     branch: "Branch",
     upstreamRelease: "Upstream release",
     openReleaseNotes: "Open release notes",
-    remoteRepository: "Remote repository",
-    openRepository: "Open repository",
+
     unavailable: "Unavailable",
     unknown: "Unknown",
     portuguese: "Portuguese",
     english: "English",
   },
   pt: {
-    appMarketplace: "Catálogo de apps de IA",
-    theme: "Tema",
+    appMarketplace: "Marketplace de apps",
     language: "Idioma",
+    primaryNavigation: "Navegação principal",
+    trustedCatalog: "Marketplace Flatpak curado",
     curatedNotScraped:
       "Curado, não raspado. Pacotes reais, arquivos de release reais e destinos diretos de instalação.",
     remote: "Remoto",
+    repository: "Repositório",
     loadingRemote: "Carregando remoto",
     fetchingRemoteFallback:
       "Buscando metadados do repositório, links de release e detalhes de publicação.",
@@ -81,29 +97,43 @@ const dictionaries = {
     couldNotLoadSlophub: "Não foi possível carregar o Slophub",
     unknownError: "Erro desconhecido ao carregar dados.",
     openSourceFeed: "Abrir feed de origem",
-    beyondTheSlop: "Além do slop",
-    heroTitle: "Apps de IA com critério, empacotados para instalação direta.",
+    heroTitle: "Encontre apps de IA e dados prontos para instalar no desktop.",
     heroCopy:
-      "Slophub é um catálogo curado de apps desktop com IA ou adjacentes a IA que fazem algo real: metadados claros, releases upstream e alvos de instalação Flatpak no mesmo lugar.",
+      "Explore um catálogo curado com metadados claros, releases upstream, alvos de instalação Flatpak e uma experiência de marketplace pensada para descoberta rápida.",
     appsIndexed: "apps indexados",
     lastSync: "Última sincronização",
+    catalogStats: "Estatísticas do catálogo",
     catalog: "Catálogo",
     curatedApplications: "Aplicações curadas",
     results: "resultados",
     catalogCopy:
-      "Pesquise por título, ID da aplicação ou resumo. Abra qualquer card para ver detalhes de release, links upstream e arquivos de instalação Flatpak.",
-    search: "Buscar",
-    searchPlaceholder: "Parquetta, query tools, DuckDB...",
+      "Compare listagens, veja detalhes de release rapidamente e abra qualquer página para acessar arquivos de instalação e recursos upstream.",
+    search: "Buscar apps",
+    searchPlaceholder: "Busque por nome, ID, DuckDB, Flatpak...",
+    filters: "Filtros",
+    explore: "Explorar",
+    browseByCategory: "Navegue por categoria",
+    browseByCategoryCopy:
+      "Use a trilha de categorias para refinar o marketplace sem perder a busca ativa.",
+    "category.all": "Todos os apps",
+    "category.data": "Dados e analytics",
+    "category.developer": "Ferramentas dev",
+    "category.productivity": "Produtividade",
+    "category.ai": "Ferramentas de IA",
     published: "Publicado",
+    viewListing: "Ver listagem",
     openAppPage: "Abrir página do app",
     loadingApplication: "Carregando aplicação",
-    resolvingPackage: "Resolvendo metadados do pacote e destinos de instalação.",
+    resolvingPackage:
+      "Resolvendo metadados do pacote e destinos de instalação.",
     couldNotLoadApplication: "Não foi possível carregar a aplicação",
     backToCatalog: "Voltar ao catálogo",
     applicationNotFound: "Aplicação não encontrada",
     noPackageMatches: 'Nenhum pacote do Slophub corresponde a "{appId}".',
     application: "Aplicação",
+    installAndResources: "Instalação e recursos",
     installViaFlatpak: "Instalar via Flatpak",
+    download: "Download",
     downloadBundle: "Baixar bundle",
     homepage: "Homepage",
     flatpakMetadata: "Metadados Flatpak",
@@ -120,8 +150,7 @@ const dictionaries = {
     branch: "Branch",
     upstreamRelease: "Release upstream",
     openReleaseNotes: "Abrir release notes",
-    remoteRepository: "Repositório remoto",
-    openRepository: "Abrir repositório",
+
     unavailable: "Indisponível",
     unknown: "Desconhecido",
     portuguese: "Português",
@@ -132,7 +161,7 @@ const dictionaries = {
 const I18nContext = createContext(null);
 
 export function I18nProvider({ children }) {
-  const [locale, setLocale] = useState("en");
+  const [locale, setLocale] = useState("pt");
 
   const value = useMemo(() => {
     const messages = dictionaries[locale];
