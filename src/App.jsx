@@ -5,13 +5,14 @@ import { useI18n } from "./i18n";
 const APPS_URL = "https://dl.sloplab.org/apps.json";
 
 const CATEGORY_KEYS = [
-  "Applets",
-  "Multimedia",
+  "Audio",
+  "AudioVideo",
   "Database",
   "Development",
   "Education",
   "Game",
   "Graphics",
+  "IDE",
   "Network",
   "Office",
   "Science",
@@ -19,16 +20,18 @@ const CATEGORY_KEYS = [
   "Spreadsheet",
   "System",
   "Utility",
+  "Video",
 ];
 
 const CATEGORY_EMOJIS = {
-  Applets: "🧩",
-  Multimedia: "🎬",
+  Audio: "🎧",
+  AudioVideo: "🎬",
   Database: "🗄️",
   Development: "🛠️",
   Education: "🎓",
   Game: "🎮",
   Graphics: "🎨",
+  IDE: "⌨️",
   Network: "🌐",
   Office: "📄",
   Science: "🔬",
@@ -36,6 +39,7 @@ const CATEGORY_EMOJIS = {
   Spreadsheet: "📊",
   System: "💻",
   Utility: "🧰",
+  Video: "📹",
 };
 
 function useSlophubData() {
@@ -360,7 +364,7 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
                 className={`category-button ${category === key ? "active" : ""}`}
                 onClick={() => setCategory(key)}
               >
-                <span>{categoryLabel(key)}</span>
+                <span>{categoryLabel(key, t)}</span>
                 <strong>{categoryCounts[key] ?? 0}</strong>
               </button>
             ))}
@@ -393,7 +397,7 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
                 <div className="badge-row">
                   {categoriesForApp(app).map((appCategory) => (
                     <span key={appCategory} className="badge badge-solid">
-                      {categoryLabel(appCategory)}
+                      {categoryLabel(appCategory, t)}
                     </span>
                   ))}
                   <span className="badge badge-neutral">
@@ -437,6 +441,89 @@ function commandFor(app) {
   }
 
   return `flatpak install --user ${app.flatpakref_url}`;
+}
+
+function ScreenshotSlider({ screenshots }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const { t } = useI18n();
+  const validScreenshots = Array.isArray(screenshots)
+    ? screenshots.filter((screenshot) => screenshot?.url)
+    : [];
+
+  if (validScreenshots.length === 0) {
+    return null;
+  }
+
+  const activeScreenshot = validScreenshots[activeIndex];
+  const hasMultipleScreenshots = validScreenshots.length > 1;
+
+  function showPrevious() {
+    setActiveIndex((index) =>
+      index === 0 ? validScreenshots.length - 1 : index - 1,
+    );
+  }
+
+  function showNext() {
+    setActiveIndex((index) =>
+      index === validScreenshots.length - 1 ? 0 : index + 1,
+    );
+  }
+
+  return (
+    <section className="screenshot-slider" aria-label={t("screenshots")}>
+      <div className="screenshot-slider-header">
+        <div>
+          <p className="eyebrow">{t("preview")}</p>
+          <h2>{t("screenshots")}</h2>
+        </div>
+        {hasMultipleScreenshots ? (
+          <div className="screenshot-controls">
+            <button
+              type="button"
+              onClick={showPrevious}
+              aria-label={t("previousScreenshot")}
+            >
+              ←
+            </button>
+            <span>
+              {activeIndex + 1} / {validScreenshots.length}
+            </span>
+            <button
+              type="button"
+              onClick={showNext}
+              aria-label={t("nextScreenshot")}
+            >
+              →
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      <figure className="screenshot-frame">
+        <img
+          src={activeScreenshot.url}
+          alt={activeScreenshot.caption ?? t("appScreenshot")}
+        />
+        {activeScreenshot.caption ? (
+          <figcaption>{activeScreenshot.caption}</figcaption>
+        ) : null}
+      </figure>
+
+      {hasMultipleScreenshots ? (
+        <div className="screenshot-dots" aria-label={t("screenshotNavigation")}>
+          {validScreenshots.map((screenshot, index) => (
+            <button
+              key={`${screenshot.url}-${index}`}
+              type="button"
+              className={index === activeIndex ? "active" : ""}
+              aria-label={t("openScreenshot", { index: index + 1 })}
+              onClick={() => setActiveIndex(index)}
+            />
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
 }
 
 function DetailPage({ status, apps, remote, error }) {
@@ -493,8 +580,9 @@ function DetailPage({ status, apps, remote, error }) {
             <img className="detail-icon-image" src={app.icon_url} alt="" />
             <div className="detail-heading">
               <p className="eyebrow">
-                {categoriesForApp(app).map(categoryLabel).join(" · ") ||
-                  t("uncategorized")}
+                {categoriesForApp(app)
+                  .map((appCategory) => categoryLabel(appCategory, t))
+                  .join(" · ") || t("uncategorized")}
               </p>
               <h1>{app.title}</h1>
               <p className="detail-description">{app.description}</p>
@@ -551,6 +639,8 @@ function DetailPage({ status, apps, remote, error }) {
             <strong>{remote?.name ?? "slophub"}</strong>
           </div>
         </div>
+
+        <ScreenshotSlider screenshots={app.screenshots} />
 
         <div className="detail-body">
           <div className="preview-panel">
@@ -625,10 +715,11 @@ function categoriesForApp(app) {
   );
 }
 
-function categoryLabel(category) {
+function categoryLabel(category, t) {
   const emoji = CATEGORY_EMOJIS[category];
+  const label = t(`category.${category}`);
 
-  return emoji ? `${emoji} ${category}` : category;
+  return emoji ? `${emoji} ${label}` : label;
 }
 
 export default function App() {
