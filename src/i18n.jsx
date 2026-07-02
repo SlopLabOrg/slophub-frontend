@@ -54,6 +54,8 @@ const dictionaries = {
     noPackageMatches: 'No Slophub package matches "{appId}".',
     application: "Application",
     installAndResources: "Install and resources",
+    installRiskPrompt:
+      "Installing or downloading third-party projects can expose your system and data to security risks. Only continue if you trust the source and understand the implications. Are you aware of the risks and want to continue?",
     installViaFlatpak: "Install via Flatpak",
     download: "Download",
     downloadBundle: "Download bundle",
@@ -132,6 +134,8 @@ const dictionaries = {
     noPackageMatches: 'Nenhum pacote do Slophub corresponde a "{appId}".',
     application: "Aplicação",
     installAndResources: "Instalação e recursos",
+    installRiskPrompt:
+      "Instalar ou baixar projetos de terceiros pode expor seu sistema e seus dados a riscos de segurança. Continue apenas se você confia na origem e entende as implicações. Você está ciente dos riscos e deseja continuar?",
     installViaFlatpak: "Instalar via Flatpak",
     download: "Download",
     downloadBundle: "Baixar bundle",

@@ -60,6 +60,12 @@ function useSlophubData() {
   return state;
 }
 
+function confirmRiskyAction(event, message) {
+  if (!window.confirm(message)) {
+    event.preventDefault();
+  }
+}
+
 function formatDate(value, locale, fallback) {
   if (!value) {
     return fallback;
@@ -94,7 +100,13 @@ function AppShell({ remote, generatedAt, children }) {
             <a href={remote.repo_url}>{t("repository")}</a>
           ) : null}
           {remote?.flatpakrepo_url ? (
-            <a href={remote.flatpakrepo_url} download>
+            <a
+              href={remote.flatpakrepo_url}
+              download
+              onClick={(event) =>
+                confirmRiskyAction(event, t("installRiskPrompt"))
+              }
+            >
               {t("download")}
             </a>
           ) : null}
@@ -389,12 +401,24 @@ function DetailPage({ status, apps, remote, error }) {
             <h2>{t("installAndResources")}</h2>
             <div className="detail-actions">
               {app.flatpakref_url ? (
-                <a className="btn btn-primary" href={app.flatpakref_url}>
+                <a
+                  className="btn btn-primary"
+                  href={app.flatpakref_url}
+                  onClick={(event) =>
+                    confirmRiskyAction(event, t("installRiskPrompt"))
+                  }
+                >
                   {t("installViaFlatpak")}
                 </a>
               ) : null}
               {app.bundle?.download_url ? (
-                <a className="btn btn-secondary" href={app.bundle.download_url}>
+                <a
+                  className="btn btn-secondary"
+                  href={app.bundle.download_url}
+                  onClick={(event) =>
+                    confirmRiskyAction(event, t("installRiskPrompt"))
+                  }
+                >
                   {t("downloadBundle")}
                 </a>
               ) : null}
