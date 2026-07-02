@@ -21,6 +21,23 @@ const CATEGORY_KEYS = [
   "Utility",
 ];
 
+const CATEGORY_EMOJIS = {
+  Applets: "🧩",
+  Multimedia: "🎬",
+  Database: "🗄️",
+  Development: "🛠️",
+  Education: "🎓",
+  Game: "🎮",
+  Graphics: "🎨",
+  Network: "🌐",
+  Office: "📄",
+  Science: "🔬",
+  Settings: "⚙️",
+  Spreadsheet: "📊",
+  System: "💻",
+  Utility: "🧰",
+};
+
 function useSlophubData() {
   const [state, setState] = useState({
     status: "loading",
@@ -605,7 +622,9 @@ function categoriesForApp(app) {
 }
 
 function categoryLabel(category) {
-  return category;
+  const emoji = CATEGORY_EMOJIS[category];
+
+  return emoji ? `${emoji} ${category}` : category;
 }
 
 export default function App() {
