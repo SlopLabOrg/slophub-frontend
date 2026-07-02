@@ -188,7 +188,11 @@ function AppShell({ remote, generatedAt, children }) {
     <div className="shell">
       <header className="topbar">
         <Link to="/" className="brand">
-          <div className="brand-mark">S</div>
+          <img
+            className="brand-logo"
+            src={`${import.meta.env.BASE_URL}logo.png`}
+            alt=""
+          />
           <div className="brand-copy">
             <strong>Slophub</strong>
             <span>{t("appMarketplace")}</span>
@@ -201,9 +205,9 @@ function AppShell({ remote, generatedAt, children }) {
             <a href={remote.repo_url}>{t("repository")}</a>
           ) : null}
           {remote?.flatpakrepo_url ? (
-            <RiskyLink href={remote.flatpakrepo_url} download>
+            <a href={remote.flatpakrepo_url} download>
               {t("download")}
-            </RiskyLink>
+            </a>
           ) : null}
         </nav>
 

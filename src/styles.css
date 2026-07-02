@@ -119,16 +119,10 @@ button {
     justify-self: start;
 }
 
-.brand-mark {
-    display: grid;
-    place-items: center;
+.brand-logo {
     width: 44px;
     height: 44px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--accent), #a78bfa);
-    color: #fff;
-    font-weight: 900;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
+    object-fit: contain;
 }
 
 .brand-copy {
