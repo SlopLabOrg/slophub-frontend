@@ -37,6 +37,10 @@ const dictionaries = {
     browseByCategoryCopy:
       "Use the category rail to narrow the marketplace while keeping search active.",
     "category.all": "All apps",
+    "category.data": "Data & analytics",
+    "category.developer": "Developer tools",
+    "category.productivity": "Productivity",
+    "category.ai": "AI tools",
     uncategorized: "Uncategorized",
     published: "Published",
     viewListing: "View listing",
@@ -76,8 +80,94 @@ const dictionaries = {
 
     unavailable: "Unavailable",
     unknown: "Unknown",
+    spanish: "Spanish",
     portuguese: "Portuguese",
     english: "English",
+  },
+  es: {
+    appMarketplace: "Marketplace de apps",
+    language: "Idioma",
+    primaryNavigation: "Navegación principal",
+    trustedCatalog: "Marketplace Flatpak indexado por la comunidad",
+    remote: "Remoto",
+    repository: "Repositorio",
+    loadingRemote: "Cargando remoto",
+    fetchingRemoteFallback:
+      "Obteniendo metadatos del repositorio, enlaces de release y detalles de publicación.",
+    metadataSynced: "Metadatos sincronizados",
+    slophub: "Slophub",
+    loadingApplications: "Cargando aplicaciones",
+    fetchingPackages: "Obteniendo paquetes de Slophub y metadatos de release.",
+    couldNotLoadSlophub: "No se pudo cargar Slophub",
+    unknownError: "Error desconocido al cargar los datos.",
+    openSourceFeed: "Abrir feed de origen",
+    heroTitle:
+      "Encuentra apps de IA y datos listas para instalar en tu escritorio.",
+    heroCopy:
+      "Explora un índice de apps con metadatos claros, releases upstream, destinos de instalación Flatpak y una experiencia de marketplace pensada para descubrir rápido.",
+    appsIndexed: "apps indexadas",
+    lastSync: "Última sincronización",
+    catalogStats: "Estadísticas del catálogo",
+    catalog: "Catálogo",
+    listedApplications: "Aplicaciones listadas",
+    results: "resultados",
+    catalogCopy:
+      "Compara listados, revisa detalles de release y abre cualquier página para acceder a archivos de instalación y recursos upstream.",
+    search: "Buscar apps",
+    searchPlaceholder: "Busca por nombre, ID, DuckDB, Flatpak...",
+    filters: "Filtros",
+    explore: "Explorar",
+    browseByCategory: "Explora por categoría",
+    browseByCategoryCopy:
+      "Usa la lista de categorías para refinar el marketplace sin perder la búsqueda activa.",
+    "category.all": "Todas las apps",
+    "category.data": "Datos y analytics",
+    "category.developer": "Herramientas dev",
+    "category.productivity": "Productividad",
+    "category.ai": "Herramientas de IA",
+    uncategorized: "Sin categoría",
+    published: "Publicado",
+    viewListing: "Ver listado",
+    openAppPage: "Abrir página de la app",
+    loadingApplication: "Cargando aplicación",
+    resolvingPackage:
+      "Resolviendo metadatos del paquete y destinos de instalación.",
+    couldNotLoadApplication: "No se pudo cargar la aplicación",
+    backToCatalog: "Volver al catálogo",
+    applicationNotFound: "Aplicación no encontrada",
+    noPackageMatches: 'Ningún paquete de Slophub coincide con "{appId}".',
+    application: "Aplicación",
+    installAndResources: "Instalación y recursos",
+    securityNotice: "Aviso de seguridad",
+    installRiskTitle: "Revisa antes de continuar",
+    installRiskPrompt:
+      "Estos proyectos vienen de fuentes externas y no son auditados por Slophub. Instalarlos o descargarlos puede exponer tu sistema y tus datos a riesgos de seguridad. Continúa solo si entiendes los riesgos.",
+    installRiskContinue: "Entiendo, continuar",
+    cancel: "Cancelar",
+    installViaFlatpak: "Instalar vía Flatpak",
+    download: "Download",
+    downloadBundle: "Descargar bundle",
+    homepage: "Homepage",
+    flatpakMetadata: "Metadatos Flatpak",
+    applicationId: "ID de la aplicación",
+    installCommand: "Comando de instalación",
+    noInstallCommand: "No hay comando de instalación Flatpak disponible",
+    releaseDetails: "Detalles de la release",
+    overview: "Resumen",
+    publishedAt: "Publicado",
+    source: "Origen",
+    releaseName: "Nombre de la release",
+    bundleSha: "SHA256 del bundle",
+    bundleFile: "Archivo del bundle",
+    branch: "Branch",
+    upstreamRelease: "Release upstream",
+    openReleaseNotes: "Abrir notas de release",
+
+    unavailable: "No disponible",
+    unknown: "Desconocido",
+    spanish: "Español",
+    portuguese: "Portugués",
+    english: "Inglés",
   },
   pt: {
     appMarketplace: "Marketplace de apps",
@@ -115,6 +205,10 @@ const dictionaries = {
     browseByCategoryCopy:
       "Use a trilha de categorias para refinar o marketplace sem perder a busca ativa.",
     "category.all": "Todos os apps",
+    "category.data": "Dados e analytics",
+    "category.developer": "Ferramentas dev",
+    "category.productivity": "Produtividade",
+    "category.ai": "Ferramentas de IA",
     uncategorized: "Sem categoria",
     published: "Publicado",
     viewListing: "Ver listagem",
@@ -155,18 +249,46 @@ const dictionaries = {
 
     unavailable: "Indisponível",
     unknown: "Desconhecido",
+    spanish: "Espanhol",
     portuguese: "Português",
     english: "Inglês",
   },
 };
 
 const I18nContext = createContext(null);
+const LOCALE_STORAGE_KEY = "slophub.locale";
+const DEFAULT_LOCALE = "en";
+const supportedLocales = Object.keys(dictionaries);
+
+function getInitialLocale() {
+  if (typeof window === "undefined") {
+    return DEFAULT_LOCALE;
+  }
+
+  const storedLocale = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+
+  return supportedLocales.includes(storedLocale)
+    ? storedLocale
+    : DEFAULT_LOCALE;
+}
 
 export function I18nProvider({ children }) {
-  const [locale, setLocale] = useState("pt");
+  const [locale, setLocaleState] = useState(getInitialLocale);
+
+  function setLocale(nextLocale) {
+    if (!supportedLocales.includes(nextLocale)) {
+      return;
+    }
+
+    setLocaleState(nextLocale);
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LOCALE_STORAGE_KEY, nextLocale);
+    }
+  }
 
   const value = useMemo(() => {
-    const messages = dictionaries[locale];
+    const messages = dictionaries[locale] ?? dictionaries[DEFAULT_LOCALE];
 
     function t(key, vars = {}) {
       let template = messages[key] ?? dictionaries.en[key] ?? key;

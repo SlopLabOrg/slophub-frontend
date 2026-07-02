@@ -171,7 +171,13 @@ function AppShell({ remote, generatedAt, children }) {
   const { locale, setLocale, t } = useI18n();
 
   useEffect(() => {
-    document.documentElement.lang = locale === "pt" ? "pt-BR" : "en";
+    const htmlLangByLocale = {
+      en: "en",
+      es: "es",
+      pt: "pt-BR",
+    };
+
+    document.documentElement.lang = htmlLangByLocale[locale] ?? "en";
   }, [locale]);
 
   return (
@@ -197,20 +203,18 @@ function AppShell({ remote, generatedAt, children }) {
           ) : null}
         </nav>
 
-        <div className="topbar-actions" aria-label={t("language")}>
-          <button
-            className={`locale-pill ${locale === "en" ? "active" : ""}`}
-            onClick={() => setLocale("en")}
+        <label className="topbar-actions language-select">
+          <span>{t("language")}</span>
+          <select
+            value={locale}
+            aria-label={t("language")}
+            onChange={(event) => setLocale(event.target.value)}
           >
-            EN
-          </button>
-          <button
-            className={`locale-pill ${locale === "pt" ? "active" : ""}`}
-            onClick={() => setLocale("pt")}
-          >
-            PT
-          </button>
-        </div>
+            <option value="en">{t("english")}</option>
+            <option value="es">{t("spanish")}</option>
+            <option value="pt">{t("portuguese")}</option>
+          </select>
+        </label>
       </header>
 
       <main className="content">

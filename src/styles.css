@@ -182,26 +182,30 @@ button {
 
 .topbar-actions {
     justify-self: end;
-    gap: 8px;
-    padding: 5px;
+    gap: 10px;
+    padding: 6px 8px 6px 14px;
+    border: 1px solid var(--border);
     border-radius: 999px;
-    background: var(--surface-muted);
+    background: var(--surface);
+    box-shadow: 0 8px 20px rgba(33, 51, 67, 0.04);
 }
 
-.locale-pill {
-    min-width: 42px;
-    height: 34px;
-    padding: 0 12px;
-    border-radius: 999px;
-    background: transparent;
+.language-select span {
     color: var(--muted);
-    cursor: pointer;
+    font-size: 13px;
     font-weight: 800;
 }
 
-.locale-pill.active {
+.language-select select {
+    min-width: 132px;
+    height: 36px;
+    padding: 0 34px 0 12px;
+    border: 0;
+    border-radius: 999px;
     color: #fff;
     background: var(--text);
+    cursor: pointer;
+    font-weight: 800;
 }
 
 .content {
