@@ -2,10 +2,10 @@ import { createContext, useContext, useMemo, useState } from "react";
 
 const dictionaries = {
   en: {
-    appMarketplace: "App marketplace",
+    appRepository: "App repository",
     language: "Language",
     primaryNavigation: "Primary navigation",
-    trustedCatalog: "Community-indexed Flatpak marketplace",
+    trustedCatalog: "Community-indexed Flatpak repository",
     remote: "Remote",
     repository: "Repository",
     loadingRemote: "Loading remote",
@@ -20,7 +20,7 @@ const dictionaries = {
     openSourceFeed: "Open source feed",
     heroTitle: "Find install-ready AI and data apps for your desktop.",
     heroCopy:
-      "Explore an app index with clear metadata, upstream releases, Flatpak install targets, and a marketplace experience built for fast discovery.",
+      "Explore an app index with clear metadata, upstream releases, Flatpak install targets, and an organized repository experience built for fast discovery.",
     appsIndexed: "apps indexed",
     lastSync: "Last sync",
     catalogStats: "Catalog stats",
@@ -35,7 +35,7 @@ const dictionaries = {
     explore: "Explore",
     browseByCategory: "Browse by category",
     browseByCategoryCopy:
-      "Use the category rail to narrow the marketplace while keeping search active.",
+      "Use the category rail to narrow the repository while keeping search active.",
     "category.all": "All apps",
     "category.Audio": "Audio",
     "category.AudioVideo": "Audio & video",
@@ -104,10 +104,10 @@ const dictionaries = {
     english: "English",
   },
   es: {
-    appMarketplace: "Marketplace de apps",
+    appRepository: "Repositorio de apps",
     language: "Idioma",
     primaryNavigation: "Navegación principal",
-    trustedCatalog: "Marketplace Flatpak indexado por la comunidad",
+    trustedCatalog: "Repositorio Flatpak indexado por la comunidad",
     remote: "Remoto",
     repository: "Repositorio",
     loadingRemote: "Cargando remoto",
@@ -123,7 +123,7 @@ const dictionaries = {
     heroTitle:
       "Encuentra apps de IA y datos listas para instalar en tu escritorio.",
     heroCopy:
-      "Explora un índice de apps con metadatos claros, releases upstream, destinos de instalación Flatpak y una experiencia de marketplace pensada para descubrir rápido.",
+      "Explora un índice de apps con metadatos claros, releases upstream, destinos de instalación Flatpak y una experiencia de repositorio pensada para descubrir rápido.",
     appsIndexed: "apps indexadas",
     lastSync: "Última sincronización",
     catalogStats: "Estadísticas del catálogo",
@@ -138,7 +138,7 @@ const dictionaries = {
     explore: "Explorar",
     browseByCategory: "Explora por categoría",
     browseByCategoryCopy:
-      "Usa la lista de categorías para refinar el marketplace sin perder la búsqueda activa.",
+      "Usa la lista de categorías para refinar el repositorio sin perder la búsqueda activa.",
     "category.all": "Todas las apps",
     "category.Audio": "Audio",
     "category.AudioVideo": "Audio y video",
@@ -208,10 +208,10 @@ const dictionaries = {
     english: "Inglés",
   },
   pt: {
-    appMarketplace: "Marketplace de apps",
+    appRepository: "Repositório de apps",
     language: "Idioma",
     primaryNavigation: "Navegação principal",
-    trustedCatalog: "Marketplace Flatpak comunitário",
+    trustedCatalog: "Repositório Flatpak comunitário",
     remote: "Remoto",
     repository: "Repositório",
     loadingRemote: "Carregando remoto",
@@ -226,7 +226,7 @@ const dictionaries = {
     openSourceFeed: "Abrir feed de origem",
     heroTitle: "Encontre apps de IA e dados prontos para instalar no desktop.",
     heroCopy:
-      "Explore um índice de apps com metadados claros, releases upstream, alvos de instalação Flatpak e uma experiência de marketplace pensada para descoberta rápida.",
+      "Explore um índice de apps com metadados claros, releases upstream, alvos de instalação Flatpak e uma experiência de repositório pensada para descoberta rápida.",
     appsIndexed: "apps indexados",
     lastSync: "Última sincronização",
     catalogStats: "Estatísticas do catálogo",
@@ -241,7 +241,7 @@ const dictionaries = {
     explore: "Explorar",
     browseByCategory: "Navegue por categoria",
     browseByCategoryCopy:
-      "Use a trilha de categorias para refinar o marketplace sem perder a busca ativa.",
+      "Use a trilha de categorias para refinar o repositório sem perder a busca ativa.",
     "category.all": "Todos os apps",
     "category.Audio": "Áudio",
     "category.AudioVideo": "Áudio e vídeo",

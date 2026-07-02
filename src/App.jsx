@@ -213,7 +213,7 @@ function AppShell({ remote, generatedAt, children }) {
           />
           <div className="brand-copy">
             <strong>Slophub</strong>
-            <span>{t("appMarketplace")}</span>
+            <span>{t("appRepository")}</span>
           </div>
         </Link>
 
@@ -366,7 +366,7 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
         </div>
       </section>
 
-      <section className="marketplace-layout" id="catalog">
+      <section className="repository-layout" id="catalog">
         <aside className="filter-panel" aria-label={t("filters")}>
           <p className="eyebrow">{t("explore")}</p>
           <h2>{t("browseByCategory")}</h2>
