@@ -25,6 +25,35 @@ const dictionaries = {
     lastSync: "Last sync",
     catalogStats: "Catalog stats",
     catalog: "Catalog",
+    docs: "Docs",
+    communityDocs: "Community docs",
+    docsTitle: "Project docs for community questions",
+    docsCopy:
+      "Find quick answers about Slophub, how listings work, how to install apps, and how the community can report problems or suggest new packages.",
+    docsGettingStarted: "Getting started",
+    docsStepBrowse: "Browse the catalog or search by app name, ID, category, or Flatpak metadata.",
+    docsStepReview: "Open an app page to review screenshots, upstream links, release details, and install targets.",
+    docsStepInstall: "Install only after reviewing the source project and understanding the security notice.",
+    docsCommunityHelp: "Community help",
+    docsCommunityHelpCopy:
+      "Use the project repository to ask questions, report broken metadata, or discuss app submissions with maintainers and the community.",
+    docsFaqEyebrow: "FAQ",
+    docsFaqTitle: "Common questions",
+    docsFaqWhatQuestion: "What is Slophub?",
+    docsFaqWhatAnswer:
+      "Slophub is a community-indexed catalog for discovering AI, data, and desktop apps distributed with Flatpak-friendly release metadata.",
+    docsFaqInstallQuestion: "How do I install an app?",
+    docsFaqInstallAnswer:
+      "Open an app listing, review the available install command or bundle download, then follow the Flatpak instructions shown on that page.",
+    docsFaqSafetyQuestion: "Are apps audited by Slophub?",
+    docsFaqSafetyAnswer:
+      "No. Listings point to external upstream projects. Always review the source, release notes, permissions, and downloads before installing.",
+    docsFaqAddAppQuestion: "How can I suggest a new app?",
+    docsFaqAddAppAnswer:
+      "Open the project repository and share the upstream app link, app ID, release assets, metadata, screenshots, and any Flatpak packaging details available.",
+    docsFaqBrokenQuestion: "What should I do if metadata is wrong or a download is broken?",
+    docsFaqBrokenAnswer:
+      "Report it in the project repository with the app name, the broken link or field, what you expected, and any relevant upstream release information.",
     listedApplications: "Listed applications",
     results: "results",
     catalogCopy:
@@ -130,6 +159,35 @@ const dictionaries = {
     lastSync: "Última sincronización",
     catalogStats: "Estadísticas del catálogo",
     catalog: "Catálogo",
+    docs: "Docs",
+    communityDocs: "Docs de la comunidad",
+    docsTitle: "Documentación del proyecto para dudas de la comunidad",
+    docsCopy:
+      "Encuentra respuestas rápidas sobre Slophub, cómo funcionan los listados, cómo instalar apps y cómo la comunidad puede reportar problemas o sugerir paquetes nuevos.",
+    docsGettingStarted: "Primeros pasos",
+    docsStepBrowse: "Explora el catálogo o busca por nombre, ID, categoría o metadatos Flatpak.",
+    docsStepReview: "Abre la página de una app para revisar capturas, enlaces upstream, detalles de release y destinos de instalación.",
+    docsStepInstall: "Instala solo después de revisar el proyecto de origen y entender el aviso de seguridad.",
+    docsCommunityHelp: "Ayuda de la comunidad",
+    docsCommunityHelpCopy:
+      "Usa el repositorio del proyecto para hacer preguntas, reportar metadatos rotos o discutir envíos de apps con maintainers y la comunidad.",
+    docsFaqEyebrow: "FAQ",
+    docsFaqTitle: "Preguntas frecuentes",
+    docsFaqWhatQuestion: "¿Qué es Slophub?",
+    docsFaqWhatAnswer:
+      "Slophub es un catálogo indexado por la comunidad para descubrir apps de IA, datos y escritorio distribuidas con metadatos de release compatibles con Flatpak.",
+    docsFaqInstallQuestion: "¿Cómo instalo una app?",
+    docsFaqInstallAnswer:
+      "Abre el listado de una app, revisa el comando de instalación o descarga de bundle disponible y sigue las instrucciones Flatpak mostradas en esa página.",
+    docsFaqSafetyQuestion: "¿Slophub audita las apps?",
+    docsFaqSafetyAnswer:
+      "No. Los listados apuntan a proyectos upstream externos. Revisa siempre el código fuente, release notes, permisos y descargas antes de instalar.",
+    docsFaqAddAppQuestion: "¿Cómo puedo sugerir una app nueva?",
+    docsFaqAddAppAnswer:
+      "Abre el repositorio del proyecto y comparte el enlace upstream de la app, app ID, assets de release, metadatos, capturas y cualquier detalle de empaquetado Flatpak disponible.",
+    docsFaqBrokenQuestion: "¿Qué hago si un metadato está mal o una descarga no funciona?",
+    docsFaqBrokenAnswer:
+      "Repórtalo en el repositorio del proyecto con el nombre de la app, el enlace o campo roto, lo que esperabas y cualquier información relevante de la release upstream.",
     listedApplications: "Aplicaciones listadas",
     results: "resultados",
     catalogCopy:
@@ -235,6 +293,35 @@ const dictionaries = {
     lastSync: "Última sincronização",
     catalogStats: "Estatísticas do catálogo",
     catalog: "Catálogo",
+    docs: "Docs",
+    communityDocs: "Docs da comunidade",
+    docsTitle: "Documentação do projeto para tirar dúvidas da comunidade",
+    docsCopy:
+      "Encontre respostas rápidas sobre o Slophub, como as listagens funcionam, como instalar apps e como a comunidade pode reportar problemas ou sugerir novos pacotes.",
+    docsGettingStarted: "Primeiros passos",
+    docsStepBrowse: "Navegue pelo catálogo ou busque por nome do app, ID, categoria ou metadados Flatpak.",
+    docsStepReview: "Abra a página de um app para revisar screenshots, links upstream, detalhes da release e alvos de instalação.",
+    docsStepInstall: "Instale apenas depois de revisar o projeto de origem e entender o aviso de segurança.",
+    docsCommunityHelp: "Ajuda da comunidade",
+    docsCommunityHelpCopy:
+      "Use o repositório do projeto para fazer perguntas, reportar metadados quebrados ou discutir envios de apps com mantenedores e a comunidade.",
+    docsFaqEyebrow: "FAQ",
+    docsFaqTitle: "Perguntas frequentes",
+    docsFaqWhatQuestion: "O que é o Slophub?",
+    docsFaqWhatAnswer:
+      "O Slophub é um catálogo indexado pela comunidade para descobrir apps de IA, dados e desktop distribuídos com metadados de release compatíveis com Flatpak.",
+    docsFaqInstallQuestion: "Como instalo um app?",
+    docsFaqInstallAnswer:
+      "Abra a listagem de um app, revise o comando de instalação ou download de bundle disponível e siga as instruções Flatpak exibidas nessa página.",
+    docsFaqSafetyQuestion: "Os apps são auditados pelo Slophub?",
+    docsFaqSafetyAnswer:
+      "Não. As listagens apontam para projetos upstream externos. Sempre revise o código-fonte, release notes, permissões e downloads antes de instalar.",
+    docsFaqAddAppQuestion: "Como posso sugerir um novo app?",
+    docsFaqAddAppAnswer:
+      "Abra o repositório do projeto e compartilhe o link upstream do app, app ID, assets de release, metadados, screenshots e qualquer detalhe de empacotamento Flatpak disponível.",
+    docsFaqBrokenQuestion: "O que faço se um metadado estiver errado ou um download quebrar?",
+    docsFaqBrokenAnswer:
+      "Reporte no repositório do projeto com o nome do app, o link ou campo quebrado, o que você esperava e qualquer informação relevante da release upstream.",
     listedApplications: "Aplicações listadas",
     results: "resultados",
     catalogCopy:

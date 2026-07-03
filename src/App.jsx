@@ -280,7 +280,8 @@ function AppShell({ remote, generatedAt, children }) {
         </Link>
 
         <nav className="topnav" aria-label={t("primaryNavigation")}>
-          <a href="#catalog">{t("catalog")}</a>
+          <Link to="/">{t("catalog")}</Link>
+          <Link to="/docs">{t("docs")}</Link>
           {remote?.repo_url ? (
             <a href={remote.repo_url}>{t("repository")}</a>
           ) : null}
@@ -330,6 +331,68 @@ function StateView({ title, copy, action }) {
       <p>{copy}</p>
       {action}
     </div>
+  );
+}
+
+function DocsPage({ remote }) {
+  const { t } = useI18n();
+
+  const questions = [
+    ["docsFaqWhatQuestion", "docsFaqWhatAnswer"],
+    ["docsFaqInstallQuestion", "docsFaqInstallAnswer"],
+    ["docsFaqSafetyQuestion", "docsFaqSafetyAnswer"],
+    ["docsFaqAddAppQuestion", "docsFaqAddAppAnswer"],
+    ["docsFaqBrokenQuestion", "docsFaqBrokenAnswer"],
+  ];
+
+  return (
+    <section className="docs-shell" aria-labelledby="docs-title">
+      <div className="docs-hero">
+        <p className="eyebrow">{t("communityDocs")}</p>
+        <h1 id="docs-title">{t("docsTitle")}</h1>
+        <p className="docs-copy">{t("docsCopy")}</p>
+      </div>
+
+      <div className="docs-grid">
+        <article className="docs-card">
+          <span className="docs-card-icon" aria-hidden="true">
+            🧭
+          </span>
+          <h2>{t("docsGettingStarted")}</h2>
+          <ol className="docs-steps">
+            <li>{t("docsStepBrowse")}</li>
+            <li>{t("docsStepReview")}</li>
+            <li>{t("docsStepInstall")}</li>
+          </ol>
+        </article>
+
+        <article className="docs-card">
+          <span className="docs-card-icon" aria-hidden="true">
+            🤝
+          </span>
+          <h2>{t("docsCommunityHelp")}</h2>
+          <p>{t("docsCommunityHelpCopy")}</p>
+          {remote?.repo_url ? (
+            <a className="btn btn-secondary" href={remote.repo_url}>
+              {t("openSourceFeed")}
+            </a>
+          ) : null}
+        </article>
+      </div>
+
+      <section className="docs-faq" aria-labelledby="docs-faq-title">
+        <p className="eyebrow">{t("docsFaqEyebrow")}</p>
+        <h2 id="docs-faq-title">{t("docsFaqTitle")}</h2>
+        <div className="docs-faq-list">
+          {questions.map(([questionKey, answerKey]) => (
+            <article className="docs-faq-item" key={questionKey}>
+              <h3>{t(questionKey)}</h3>
+              <p>{t(answerKey)}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    </section>
   );
 }
 
@@ -814,6 +877,7 @@ export default function App() {
     <AppShell remote={data.remote} generatedAt={data.generatedAt}>
       <Routes>
         <Route path="/" element={<HomePage {...data} />} />
+        <Route path="/docs" element={<DocsPage remote={data.remote} />} />
         <Route path="/:appId" element={<DetailPage {...data} />} />
       </Routes>
     </AppShell>
