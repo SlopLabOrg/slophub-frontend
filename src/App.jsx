@@ -592,6 +592,7 @@ function commandFor(app) {
 
 function ScreenshotSlider({ screenshots }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isImageLoading, setIsImageLoading] = useState(true);
   const { t } = useI18n();
   const validScreenshots = Array.isArray(screenshots)
     ? screenshots.filter((screenshot) => screenshot?.url)
@@ -603,6 +604,10 @@ function ScreenshotSlider({ screenshots }) {
 
   const activeScreenshot = validScreenshots[activeIndex];
   const hasMultipleScreenshots = validScreenshots.length > 1;
+
+  useEffect(() => {
+    setIsImageLoading(true);
+  }, [activeScreenshot.url]);
 
   function showPrevious() {
     setActiveIndex((index) =>
@@ -646,10 +651,20 @@ function ScreenshotSlider({ screenshots }) {
         ) : null}
       </div>
 
-      <figure className="screenshot-frame">
+      <figure
+        className={`screenshot-frame${isImageLoading ? " is-loading" : ""}`}
+      >
+        {isImageLoading ? (
+          <div className="screenshot-loading" role="status" aria-live="polite">
+            <span className="screenshot-spinner" aria-hidden="true" />
+            <span>{t("loadingScreenshot")}</span>
+          </div>
+        ) : null}
         <img
           src={activeScreenshot.url}
           alt={activeScreenshot.caption ?? t("appScreenshot")}
+          onLoad={() => setIsImageLoading(false)}
+          onError={() => setIsImageLoading(false)}
         />
         {activeScreenshot.caption ? (
           <figcaption>{activeScreenshot.caption}</figcaption>

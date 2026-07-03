@@ -873,6 +873,7 @@ button {
 }
 
 .screenshot-frame {
+    position: relative;
     overflow: hidden;
     margin: 0;
     border: 1px solid var(--border);
@@ -890,6 +891,49 @@ button {
         var(--surface-accent),
         var(--surface-muted)
     );
+    transition: opacity 180ms ease;
+}
+
+.screenshot-frame.is-loading {
+    min-height: clamp(220px, 42vw, 560px);
+}
+
+.screenshot-frame.is-loading img {
+    opacity: 0;
+}
+
+.screenshot-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 12px;
+    padding: 24px;
+    color: var(--muted);
+    background: linear-gradient(
+        135deg,
+        var(--surface-accent),
+        var(--surface-muted)
+    );
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.screenshot-spinner {
+    width: 36px;
+    height: 36px;
+    border: 4px solid rgba(124, 58, 237, 0.18);
+    border-top-color: var(--accent);
+    border-radius: 999px;
+    animation: screenshot-spin 850ms linear infinite;
+}
+
+@keyframes screenshot-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .screenshot-frame figcaption {
