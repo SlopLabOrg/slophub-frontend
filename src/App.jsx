@@ -114,6 +114,67 @@ function useSlophubData() {
   return state;
 }
 
+function filenameFromUrl(url, fallback) {
+  try {
+    const pathname = new URL(url).pathname;
+    const filename = pathname.split("/").filter(Boolean).at(-1);
+
+    return filename || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function triggerDownload(href, filename) {
+  const link = document.createElement("a");
+  link.href = href;
+  link.download = filename || "";
+  document.body.append(link);
+  link.click();
+  link.remove();
+}
+
+async function downloadUrl(href, filename) {
+  const response = await fetch(href, { credentials: "omit" });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+
+  try {
+    triggerDownload(objectUrl, filename);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+function DownloadLink({ href, filename, className, children }) {
+  const { t } = useI18n();
+  const downloadFilename = filenameFromUrl(href, filename);
+
+  return (
+    <a
+      className={className}
+      href={href}
+      download={downloadFilename}
+      onClick={async (event) => {
+        event.preventDefault();
+
+        try {
+          await downloadUrl(href, downloadFilename);
+        } catch {
+          window.alert(t("downloadFailed"));
+        }
+      }}
+    >
+      {children}
+    </a>
+  );
+}
+
 function RiskyLink({ href, download = false, className, children }) {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useI18n();
@@ -121,13 +182,14 @@ function RiskyLink({ href, download = false, className, children }) {
   function continueToTarget() {
     setIsOpen(false);
 
-    const link = document.createElement("a");
-    link.href = href;
-
     if (download) {
-      link.download = typeof download === "string" ? download : "";
+      const filename = typeof download === "string" ? download : "";
+      triggerDownload(href, filename);
+      return;
     }
 
+    const link = document.createElement("a");
+    link.href = href;
     document.body.append(link);
     link.click();
     link.remove();
@@ -223,9 +285,9 @@ function AppShell({ remote, generatedAt, children }) {
             <a href={remote.repo_url}>{t("repository")}</a>
           ) : null}
           {remote?.flatpakrepo_url ? (
-            <a href={remote.flatpakrepo_url} download>
+            <DownloadLink href={remote.flatpakrepo_url} filename="slophub.flatpakrepo">
               {t("download")}
-            </a>
+            </DownloadLink>
           ) : null}
         </nav>
 
@@ -626,6 +688,7 @@ function DetailPage({ status, apps, remote, error }) {
                 <RiskyLink
                   className="btn btn-secondary"
                   href={app.bundle.download_url}
+                  download={app.bundle.asset_name ?? true}
                 >
                   {t("downloadBundle")}
                 </RiskyLink>

@@ -73,6 +73,8 @@ const dictionaries = {
     cancel: "Cancel",
     installViaFlatpak: "Install via Flatpak",
     download: "Download",
+    downloadFailed:
+      "Could not download the repository automatically. Please try again later.",
     downloadBundle: "Download bundle",
     homepage: "Homepage",
     flatpakMetadata: "Flatpak metadata",
@@ -177,6 +179,8 @@ const dictionaries = {
     cancel: "Cancelar",
     installViaFlatpak: "Instalar vía Flatpak",
     download: "Download",
+    downloadFailed:
+      "No se pudo descargar el repositorio automáticamente. Inténtalo de nuevo más tarde.",
     downloadBundle: "Descargar bundle",
     homepage: "Homepage",
     flatpakMetadata: "Metadatos Flatpak",
@@ -280,6 +284,8 @@ const dictionaries = {
     cancel: "Cancelar",
     installViaFlatpak: "Instalar via Flatpak",
     download: "Download",
+    downloadFailed:
+      "Não foi possível baixar o repositório automaticamente. Tente novamente mais tarde.",
     downloadBundle: "Baixar bundle",
     homepage: "Homepage",
     flatpakMetadata: "Metadados Flatpak",
