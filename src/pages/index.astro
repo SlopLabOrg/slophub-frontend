@@ -1,0 +1,15 @@
+---
+import { HomeApp } from "../App.jsx";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { fetchSlophubData } from "../lib/slophub.js";
+
+const data = await fetchSlophubData();
+---
+
+<BaseLayout
+  title="Slophub"
+  description="Find install-ready AI and data apps for your desktop."
+  canonicalPath="/"
+>
+  <HomeApp client:load {...data} />
+</BaseLayout>

@@ -1,9 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, Route, Routes, useParams } from "react-router-dom";
-import { useI18n } from "./i18n";
+import { I18nProvider, useI18n } from "./i18n";
 
-const APPS_URL = "https://dl.sloplab.org/apps.json";
-const SESSION_CACHE_KEY = "slophub.sessionCacheId";
+export const APPS_URL = "https://dl.sloplab.org/apps.json";
+
+export const RESERVED_ROUTES = new Set([
+  "404",
+  "404.html",
+  "about",
+  "apps",
+  "assets",
+  "categories",
+  "docs",
+  "favicon.ico",
+  "faq",
+  "privacy",
+  "robots.txt",
+  "sitemap.xml",
+  "terms",
+]);
 
 const CATEGORY_KEYS = [
   "Audio",
@@ -24,6 +38,19 @@ const CATEGORY_KEYS = [
   "Video",
 ];
 
+function routePath(path) {
+  const baseUrl = import.meta.env.BASE_URL ?? "/";
+  const normalizedBase = baseUrl.endsWith("/")
+    ? baseUrl.slice(0, -1)
+    : baseUrl;
+
+  return `${normalizedBase}${path}` || "/";
+}
+
+function appRoute(appId) {
+  return routePath(`/${encodeURIComponent(appId)}`);
+}
+
 const CATEGORY_EMOJIS = {
   Audio: "🎧",
   AudioVideo: "🎬",
@@ -43,75 +70,34 @@ const CATEGORY_EMOJIS = {
   Video: "📹",
 };
 
-function appsUrlForSession() {
-  if (typeof window === "undefined") {
-    return APPS_URL;
+export async function fetchSlophubData() {
+  const response = await fetch(APPS_URL);
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
   }
 
-  let cacheId = window.sessionStorage.getItem(SESSION_CACHE_KEY);
+  const payload = await response.json();
 
-  if (!cacheId) {
-    cacheId = String(Date.now());
-    window.sessionStorage.setItem(SESSION_CACHE_KEY, cacheId);
-  }
+  validateReservedRoutes(payload.apps ?? []);
 
-  return `${APPS_URL}?v=${cacheId}`;
+  return {
+    apps: payload.apps ?? [],
+    remote: payload.remote ?? null,
+    generatedAt: payload.generated_at ?? null,
+  };
 }
 
-function useSlophubData() {
-  const [state, setState] = useState({
-    status: "loading",
-    apps: [],
-    remote: null,
-    generatedAt: null,
-    error: null,
-  });
+export function validateReservedRoutes(apps) {
+  const conflictingApp = apps.find((app) =>
+    RESERVED_ROUTES.has(String(app?.app_id ?? "").toLowerCase()),
+  );
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const response = await fetch(appsUrlForSession(), {
-          cache: "no-store",
-        });
-
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
-        }
-
-        const payload = await response.json();
-
-        if (!cancelled) {
-          setState({
-            status: "ready",
-            apps: payload.apps ?? [],
-            remote: payload.remote ?? null,
-            generatedAt: payload.generated_at ?? null,
-            error: null,
-          });
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setState({
-            status: "error",
-            apps: [],
-            remote: null,
-            generatedAt: null,
-            error: error instanceof Error ? error.message : "Unknown error",
-          });
-        }
-      }
-    }
-
-    load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return state;
+  if (conflictingApp) {
+    throw new Error(
+      `App ID "${conflictingApp.app_id}" conflicts with a reserved route.`,
+    );
+  }
 }
 
 function filenameFromUrl(url, fallback) {
@@ -251,6 +237,25 @@ function formatDate(value, locale, fallback) {
   }).format(new Date(value));
 }
 
+function formatDateTime(value, locale, fallback) {
+  if (!value) {
+    return fallback;
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function commandFor(app) {
+  if (!app?.flatpakref_url) {
+    return null;
+  }
+
+  return `flatpak install --user ${app.flatpakref_url}`;
+}
+
 function AppShell({ remote, generatedAt, children }) {
   const { locale, setLocale, t } = useI18n();
 
@@ -267,7 +272,7 @@ function AppShell({ remote, generatedAt, children }) {
   return (
     <div className="shell">
       <header className="topbar">
-        <Link to="/" className="brand">
+        <a href={routePath("/")} className="brand">
           <img
             className="brand-logo"
             src={`${import.meta.env.BASE_URL}logo.png`}
@@ -277,14 +282,12 @@ function AppShell({ remote, generatedAt, children }) {
             <strong>Slophub</strong>
             <span>{t("appRepository")}</span>
           </div>
-        </Link>
+        </a>
 
         <nav className="topnav" aria-label={t("primaryNavigation")}>
-          <Link to="/">{t("catalog")}</Link>
-          <Link to="/docs">{t("docs")}</Link>
-          {remote?.repo_url ? (
-            <a href={remote.repo_url}>{t("repository")}</a>
-          ) : null}
+          <a href={routePath("/")}>{t("catalog")}</a>
+          <a href={routePath("/docs")}>{t("docs")}</a>
+          {remote?.repo_url ? <a href={remote.repo_url}>{t("repository")}</a> : null}
           {remote?.flatpakrepo_url ? (
             <DownloadLink href={remote.flatpakrepo_url} filename="slophub.flatpakrepo">
               {t("download")}
@@ -311,8 +314,7 @@ function AppShell({ remote, generatedAt, children }) {
 
         <footer className="footer-note">
           <span>
-            {t("metadataSynced")}:{" "}
-            {formatDate(generatedAt, locale, t("unknown"))}
+            {t("metadataSynced")}: {formatDate(generatedAt, locale, t("unknown"))}
           </span>
           <span>{remote?.description ?? t("fetchingRemoteFallback")}</span>
         </footer>
@@ -334,7 +336,31 @@ function StateView({ title, copy, action }) {
   );
 }
 
-function DocsPage({ remote }) {
+export function DocsApp(props) {
+  return (
+    <I18nProvider>
+      <DocsPage {...props} />
+    </I18nProvider>
+  );
+}
+
+export function HomeApp(props) {
+  return (
+    <I18nProvider>
+      <HomePage {...props} />
+    </I18nProvider>
+  );
+}
+
+export function DetailApp(props) {
+  return (
+    <I18nProvider>
+      <DetailPage {...props} />
+    </I18nProvider>
+  );
+}
+
+export function DocsPage({ remote = null, generatedAt = null }) {
   const { t } = useI18n();
 
   const questions = [
@@ -346,57 +372,59 @@ function DocsPage({ remote }) {
   ];
 
   return (
-    <section className="docs-shell" aria-labelledby="docs-title">
-      <div className="docs-hero">
-        <p className="eyebrow">{t("communityDocs")}</p>
-        <h1 id="docs-title">{t("docsTitle")}</h1>
-        <p className="docs-copy">{t("docsCopy")}</p>
-      </div>
-
-      <div className="docs-grid">
-        <article className="docs-card">
-          <span className="docs-card-icon" aria-hidden="true">
-            🧭
-          </span>
-          <h2>{t("docsGettingStarted")}</h2>
-          <ol className="docs-steps">
-            <li>{t("docsStepBrowse")}</li>
-            <li>{t("docsStepReview")}</li>
-            <li>{t("docsStepInstall")}</li>
-          </ol>
-        </article>
-
-        <article className="docs-card">
-          <span className="docs-card-icon" aria-hidden="true">
-            🤝
-          </span>
-          <h2>{t("docsCommunityHelp")}</h2>
-          <p>{t("docsCommunityHelpCopy")}</p>
-          {remote?.repo_url ? (
-            <a className="btn btn-secondary" href={remote.repo_url}>
-              {t("openSourceFeed")}
-            </a>
-          ) : null}
-        </article>
-      </div>
-
-      <section className="docs-faq" aria-labelledby="docs-faq-title">
-        <p className="eyebrow">{t("docsFaqEyebrow")}</p>
-        <h2 id="docs-faq-title">{t("docsFaqTitle")}</h2>
-        <div className="docs-faq-list">
-          {questions.map(([questionKey, answerKey]) => (
-            <article className="docs-faq-item" key={questionKey}>
-              <h3>{t(questionKey)}</h3>
-              <p>{t(answerKey)}</p>
-            </article>
-          ))}
+    <AppShell remote={remote} generatedAt={generatedAt}>
+      <section className="docs-shell" aria-labelledby="docs-title">
+        <div className="docs-hero">
+          <p className="eyebrow">{t("communityDocs")}</p>
+          <h1 id="docs-title">{t("docsTitle")}</h1>
+          <p className="docs-copy">{t("docsCopy")}</p>
         </div>
+
+        <div className="docs-grid">
+          <article className="docs-card">
+            <span className="docs-card-icon" aria-hidden="true">
+              🧭
+            </span>
+            <h2>{t("docsGettingStarted")}</h2>
+            <ol className="docs-steps">
+              <li>{t("docsStepBrowse")}</li>
+              <li>{t("docsStepReview")}</li>
+              <li>{t("docsStepInstall")}</li>
+            </ol>
+          </article>
+
+          <article className="docs-card">
+            <span className="docs-card-icon" aria-hidden="true">
+              🤝
+            </span>
+            <h2>{t("docsCommunityHelp")}</h2>
+            <p>{t("docsCommunityHelpCopy")}</p>
+            {remote?.repo_url ? (
+              <a className="btn btn-secondary" href={remote.repo_url}>
+                {t("openSourceFeed")}
+              </a>
+            ) : null}
+          </article>
+        </div>
+
+        <section className="docs-faq" aria-labelledby="docs-faq-title">
+          <p className="eyebrow">{t("docsFaqEyebrow")}</p>
+          <h2 id="docs-faq-title">{t("docsFaqTitle")}</h2>
+          <div className="docs-faq-list">
+            {questions.map(([questionKey, answerKey]) => (
+              <article className="docs-faq-item" key={questionKey}>
+                <h3>{t(questionKey)}</h3>
+                <p>{t(answerKey)}</p>
+              </article>
+            ))}
+          </div>
+        </section>
       </section>
-    </section>
+    </AppShell>
   );
 }
 
-function HomePage({ status, apps, remote, generatedAt, error }) {
+export function HomePage({ apps = [], remote = null, generatedAt = null }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState(null);
   const { locale, t } = useI18n();
@@ -420,8 +448,7 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
     const normalizedQuery = query.trim().toLowerCase();
 
     return apps.filter((app) => {
-      const matchesCategory =
-        !category || categoriesForApp(app).includes(category);
+      const matchesCategory = !category || categoriesForApp(app).includes(category);
       const matchesQuery = normalizedQuery
         ? [app.title, app.description, app.app_id, app.release?.tag]
             .filter(Boolean)
@@ -432,31 +459,8 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
     });
   }, [apps, category, query]);
 
-  if (status === "loading") {
-    return (
-      <StateView
-        title={t("loadingApplications")}
-        copy={t("fetchingPackages")}
-      />
-    );
-  }
-
-  if (status === "error") {
-    return (
-      <StateView
-        title={t("couldNotLoadSlophub")}
-        copy={error ?? t("unknownError")}
-        action={
-          <a className="btn btn-primary" href={APPS_URL}>
-            {t("openSourceFeed")}
-          </a>
-        }
-      />
-    );
-  }
-
   return (
-    <>
+    <AppShell remote={remote} generatedAt={generatedAt}>
       <section className="hero">
         <div className="hero-kicker">
           <span className="status-dot" />
@@ -532,7 +536,7 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
 
           <div className="app-grid">
             {filteredApps.map((app) => (
-              <Link key={app.app_id} to={`/${app.app_id}`} className="app-card">
+              <a key={app.app_id} href={appRoute(app.app_id)} className="app-card">
                 <div className="app-head">
                   <img className="app-icon-image" src={app.icon_url} alt="" />
                   <div>
@@ -553,41 +557,17 @@ function HomePage({ status, apps, remote, generatedAt, error }) {
                 </div>
                 <div className="app-meta">
                   <span>
-                    {t("published")}{" "}
-                    {formatDate(
-                      app.release?.published_at,
-                      locale,
-                      t("unknown"),
-                    )}
+                    {t("published")} {formatDate(app.release?.published_at, locale, t("unknown"))}
                   </span>
                   <strong>{t("viewListing")}</strong>
                 </div>
-              </Link>
+              </a>
             ))}
           </div>
         </div>
       </section>
-    </>
+    </AppShell>
   );
-}
-
-function formatDateTime(value, locale, fallback) {
-  if (!value) {
-    return fallback;
-  }
-
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
-function commandFor(app) {
-  if (!app?.flatpakref_url) {
-    return null;
-  }
-
-  return `flatpak install --user ${app.flatpakref_url}`;
 }
 
 function ScreenshotSlider({ screenshots }) {
@@ -598,16 +578,18 @@ function ScreenshotSlider({ screenshots }) {
     ? screenshots.filter((screenshot) => screenshot?.url)
     : [];
 
-  if (validScreenshots.length === 0) {
-    return null;
-  }
-
   const activeScreenshot = validScreenshots[activeIndex];
   const hasMultipleScreenshots = validScreenshots.length > 1;
 
   useEffect(() => {
-    setIsImageLoading(true);
-  }, [activeScreenshot.url]);
+    if (activeScreenshot?.url) {
+      setIsImageLoading(true);
+    }
+  }, [activeScreenshot?.url]);
+
+  if (validScreenshots.length === 0) {
+    return null;
+  }
 
   function showPrevious() {
     setActiveIndex((index) =>
@@ -630,30 +612,20 @@ function ScreenshotSlider({ screenshots }) {
         </div>
         {hasMultipleScreenshots ? (
           <div className="screenshot-controls">
-            <button
-              type="button"
-              onClick={showPrevious}
-              aria-label={t("previousScreenshot")}
-            >
+            <button type="button" onClick={showPrevious} aria-label={t("previousScreenshot")}>
               ←
             </button>
             <span>
               {activeIndex + 1} / {validScreenshots.length}
             </span>
-            <button
-              type="button"
-              onClick={showNext}
-              aria-label={t("nextScreenshot")}
-            >
+            <button type="button" onClick={showNext} aria-label={t("nextScreenshot")}>
               →
             </button>
           </div>
         ) : null}
       </div>
 
-      <figure
-        className={`screenshot-frame${isImageLoading ? " is-loading" : ""}`}
-      >
+      <figure className={`screenshot-frame${isImageLoading ? " is-loading" : ""}`}>
         {isImageLoading ? (
           <div className="screenshot-loading" role="status" aria-live="polite">
             <span className="screenshot-spinner" aria-hidden="true" />
@@ -666,9 +638,7 @@ function ScreenshotSlider({ screenshots }) {
           onLoad={() => setIsImageLoading(false)}
           onError={() => setIsImageLoading(false)}
         />
-        {activeScreenshot.caption ? (
-          <figcaption>{activeScreenshot.caption}</figcaption>
-        ) : null}
+        {activeScreenshot.caption ? <figcaption>{activeScreenshot.caption}</figcaption> : null}
       </figure>
 
       {hasMultipleScreenshots ? (
@@ -688,52 +658,31 @@ function ScreenshotSlider({ screenshots }) {
   );
 }
 
-function DetailPage({ status, apps, remote, error }) {
-  const { appId } = useParams();
+export function DetailPage({ app, remote = null, generatedAt = null }) {
   const { locale, t } = useI18n();
-
-  if (status === "loading") {
-    return (
-      <StateView title={t("loadingApplication")} copy={t("resolvingPackage")} />
-    );
-  }
-
-  if (status === "error") {
-    return (
-      <StateView
-        title={t("couldNotLoadApplication")}
-        copy={error ?? t("unknownError")}
-        action={
-          <Link className="btn btn-primary" to="/">
-            {t("backToCatalog")}
-          </Link>
-        }
-      />
-    );
-  }
-
-  const app = apps.find((item) => item.app_id === appId);
 
   if (!app) {
     return (
-      <StateView
-        title={t("applicationNotFound")}
-        copy={t("noPackageMatches", { appId })}
-        action={
-          <Link className="btn btn-primary" to="/">
-            {t("backToCatalog")}
-          </Link>
-        }
-      />
+      <AppShell remote={remote} generatedAt={generatedAt}>
+        <StateView
+          title={t("applicationNotFound")}
+          copy={t("noPackageMatches", { appId: "" })}
+          action={
+            <a className="btn btn-primary" href={routePath("/")}>
+              {t("backToCatalog")}
+            </a>
+          }
+        />
+      </AppShell>
     );
   }
 
   const installCommand = commandFor(app);
 
   return (
-    <>
+    <AppShell remote={remote} generatedAt={generatedAt}>
       <div className="page-backlink">
-        <Link to="/">← {t("backToCatalog")}</Link>
+        <a href={routePath("/")}>← {t("backToCatalog")}</a>
       </div>
 
       <section className="detail-shell">
@@ -755,10 +704,7 @@ function DetailPage({ status, apps, remote, error }) {
             <h2>{t("installAndResources")}</h2>
             <div className="detail-actions">
               {app.flatpakref_url ? (
-                <RiskyLink
-                  className="btn btn-primary"
-                  href={app.flatpakref_url}
-                >
+                <RiskyLink className="btn btn-primary" href={app.flatpakref_url}>
                   {t("installViaFlatpak")}
                 </RiskyLink>
               ) : null}
@@ -787,15 +733,11 @@ function DetailPage({ status, apps, remote, error }) {
           </div>
           <div className="overview-card">
             <span>{t("releaseName")}</span>
-            <strong>
-              {app.release?.tag ?? app.release?.name ?? t("unknown")}
-            </strong>
+            <strong>{app.release?.tag ?? app.release?.name ?? t("unknown")}</strong>
           </div>
           <div className="overview-card">
             <span>{t("publishedAt")}</span>
-            <strong>
-              {formatDateTime(app.release?.published_at, locale, t("unknown"))}
-            </strong>
+            <strong>{formatDateTime(app.release?.published_at, locale, t("unknown"))}</strong>
           </div>
           <div className="overview-card">
             <span>{t("source")}</span>
@@ -828,19 +770,11 @@ function DetailPage({ status, apps, remote, error }) {
                 </div>
                 <div>
                   <span>{t("published")}</span>
-                  <strong>
-                    {formatDateTime(
-                      app.release?.published_at,
-                      locale,
-                      t("unknown"),
-                    )}
-                  </strong>
+                  <strong>{formatDateTime(app.release?.published_at, locale, t("unknown"))}</strong>
                 </div>
                 <div>
                   <span>{t("bundleSha")}</span>
-                  <strong className="hash-block">
-                    {app.bundle?.sha256 ?? t("unavailable")}
-                  </strong>
+                  <strong className="hash-block">{app.bundle?.sha256 ?? t("unavailable")}</strong>
                 </div>
               </div>
             </div>
@@ -854,17 +788,13 @@ function DetailPage({ status, apps, remote, error }) {
             <div className="spec-item">
               <span>{t("upstreamRelease")}</span>
               <strong>
-                {app.release?.url ? (
-                  <a href={app.release.url}>{t("openReleaseNotes")}</a>
-                ) : (
-                  t("unavailable")
-                )}
+                {app.release?.url ? <a href={app.release.url}>{t("openReleaseNotes")}</a> : t("unavailable")}
               </strong>
             </div>
           </aside>
         </div>
       </section>
-    </>
+    </AppShell>
   );
 }
 
@@ -883,18 +813,4 @@ function categoryLabel(category, t) {
   const label = t(`category.${category}`);
 
   return emoji ? `${emoji} ${label}` : label;
-}
-
-export default function App() {
-  const data = useSlophubData();
-
-  return (
-    <AppShell remote={data.remote} generatedAt={data.generatedAt}>
-      <Routes>
-        <Route path="/" element={<HomePage {...data} />} />
-        <Route path="/docs" element={<DocsPage remote={data.remote} />} />
-        <Route path="/:appId" element={<DetailPage {...data} />} />
-      </Routes>
-    </AppShell>
-  );
 }

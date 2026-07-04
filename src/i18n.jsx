@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const dictionaries = {
   en: {
@@ -413,7 +413,7 @@ const LOCALE_STORAGE_KEY = "slophub.locale";
 const DEFAULT_LOCALE = "en";
 const supportedLocales = Object.keys(dictionaries);
 
-function getInitialLocale() {
+function getStoredLocale() {
   if (typeof window === "undefined") {
     return DEFAULT_LOCALE;
   }
@@ -426,7 +426,11 @@ function getInitialLocale() {
 }
 
 export function I18nProvider({ children }) {
-  const [locale, setLocaleState] = useState(getInitialLocale);
+  const [locale, setLocaleState] = useState(DEFAULT_LOCALE);
+
+  useEffect(() => {
+    setLocaleState(getStoredLocale());
+  }, []);
 
   function setLocale(nextLocale) {
     if (!supportedLocales.includes(nextLocale)) {

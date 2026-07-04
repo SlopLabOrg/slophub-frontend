@@ -1,0 +1,15 @@
+---
+import { DocsApp } from "../App.jsx";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { fetchSlophubData } from "../lib/slophub.js";
+
+const data = await fetchSlophubData();
+---
+
+<BaseLayout
+  title="Project docs - Slophub"
+  description="Project documentation and FAQ for the Slophub community."
+  canonicalPath="/docs"
+>
+  <DocsApp client:load remote={data.remote} generatedAt={data.generatedAt} />
+</BaseLayout>
